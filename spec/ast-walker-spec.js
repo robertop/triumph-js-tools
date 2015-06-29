@@ -1,0 +1,165 @@
+/**
+ * This software is released under the terms of the MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @copyright  2015 Roberto Perpuly
+ * @license    http://www.opensource.org/licenses/mit-license.php The MIT License
+ */
+
+var AstWalker = require('../src/ast-walker.js');
+var Resource = require('../src/resource.js');
+
+/**
+ * Tests for the AST Walker.
+ */
+describe('ast walker tests', function() {
+
+	/**
+	 * The object under test
+	 * @var AstWalker
+	 */
+	var walker;
+
+	/**
+	 * the "expected" resource to be created/inserted into the
+	 * store.
+	 *
+	 * @var Resource
+	 */
+	var resource;
+
+	/**
+	 * The store that resources should be inserted into.
+	 * This is a stub.
+	 */
+	var store;
+
+	/**
+	 * The input into the AstWalker: the AST that the walker
+	 * should read from
+	 */
+	var node;
+
+	beforeEach(function() {
+		walker = new AstWalker();
+		resource = new Resource();
+		store = jasmine.createSpyObj('Store', ['insert', 'flush']);
+		walker.init(store);
+
+		node = {
+			type: 'Program',
+			body: []
+		};
+	});
+
+	it('should store a function', function() {
+		node.body = [
+			{
+				type: 'FunctionDeclaration',
+				loc: {
+					source: '',
+					start: {
+						line: 30,
+						column: 4
+					},
+					end: {
+						line: 40,
+						column: 0
+					}
+				},
+				id: {
+					type: 'Identifier',
+					name: 'extractName'
+				},
+				params: [],
+				body: {
+					type: 'BlockStatement',
+					body: []
+				}
+			}
+		];
+		resource.Key = 'extractName';
+		resource.FunctionName = 'extractName';
+		resource.ObjectName = '';
+		resource.LineNumber = 30;
+		resource.ColumnPosition = 4;
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		expect(store.flush).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(actualResource).toEqual(resource);
+	});
+
+	it('should store global objects', function() {
+		node.body = [{
+			type: 'VariableDeclaration',
+			declarations: [{
+				type: 'VariableDeclarator',
+				id: {
+					type: 'Identifier',
+					name: 'Utils'
+				},
+				init:  {
+					type: 'ObjectExpression',
+					properties: [{
+						type: 'Property',
+						key: {
+							loc: {
+								start: {
+									line: 2,
+									column: 4
+								}
+							},
+							type: 'Identifier',
+							name: 'extractName',
+						},
+						value: {
+							type: 'FunctionExpression',
+							id: null,
+							params: [],
+							body: {
+								type: 'BlockStatement',
+								body: []
+							}
+						}
+					}]
+				}
+			}]
+		}];
+
+		resource.Key = 'Utils.extractName';
+		resource.FunctionName = 'extractName';
+		resource.ObjectName = 'Utils';
+		resource.LineNumber = 2;
+		resource.ColumnPosition = 4;
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		expect(store.flush).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(actualResource).toEqual(resource);
+	});
+});
+

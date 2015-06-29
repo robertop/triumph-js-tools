@@ -1,0 +1,24 @@
+{
+  "name": "triumph-js-tools",
+  "version": "1.0.0",
+  "description": "Parses JavaScript files and saves interesting artifacts into a SQLite file used by the Triumph IDE",
+  "main": "src/triumph-store.js",
+  "repository": "https://github.com/robertop/triumph-js-tools",
+  "dependencies": {
+    "jasmine": "^2.3.1",
+    "jasmine-core": "^2.3.4",
+    "sqlite3": "^3.0.8",
+    "esprima": "^2.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node_modules/.bin/jasmine"
+  },
+  "keywords": [
+    "IDE",
+    "Editor",
+    "Auto-Complete"
+  ],
+  "author": "Roberto Perpuly",
+  "license": "MIT"
+}
