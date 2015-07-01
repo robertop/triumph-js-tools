@@ -33,7 +33,7 @@ var sqlite3 = require('sqlite3').verbose();
  * by calling the "done" callback that is given to each  "it"
  * spec.
  */
-describe("store tests", function() {
+describe('store tests', function() {
 
 	/**
 	 * the object under test
@@ -57,7 +57,6 @@ describe("store tests", function() {
 	var resource;
 
 	beforeEach(function(done) {
-		
 		resource = new Resource();
 		resource.Key = 'query.searchbyname';
 		resource.FunctionName = 'searchByName';
@@ -86,7 +85,7 @@ describe("store tests", function() {
 		});
 	});
 
-	it("should save a resource", function(done) {
+	it('should save a resource', function(done) {
 		store.insert(resource);
 		store.flush();
 		db.serialize(function() {

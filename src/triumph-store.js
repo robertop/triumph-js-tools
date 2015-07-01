@@ -53,7 +53,7 @@ var sourceDir = opts.options.dir;
 var sourceExists = fs.existsSync(sourceFile);
 var sourceDirExists = fs.existsSync(sourceDir);
 if (!sourceExists && !sourceDirExists) {
-	if  (!sourceExists) {
+	if (!sourceExists) {
 		console.log('File does not exist: ' + sourceFile);
 	}
 	if (!sourceDirExists) {
@@ -95,8 +95,7 @@ function parseAndStore(fileName) {
 			db.run(create, [], function() {
 				storeAst(fileName);
 			});
-		}
-		else {
+		} else {
 			storeAst(fileName);
 		}
 	});
@@ -106,7 +105,6 @@ var storeAst = function(fileName) {
 	try {
 		var contents = fs.readFileSync(fileName);
 		var ast = esprima.parse(contents, {loc: true});
-		
 		astWalker.walkNode(ast);
 		db.close(function() {
 			console.log('Done.');
@@ -119,7 +117,7 @@ var storeAst = function(fileName) {
 function parseAndStoreDir(dir) {
 	var files = fs.readdirSync(dir);
 	for (var i = 0; i < files.length; i++) {
-		var fullPath = dir + "/" + files[i];
+		var fullPath = dir + '/' + files[i];
 		if (files[i].substr(files[i].length - 3, 3) == '.js') {
 			parseAndStore(fullPath);
 		}
@@ -131,7 +129,6 @@ function parseAndStoreDir(dir) {
 
 if (sourceFile && sourceExists) {
 	parseAndStore(sourceFile);
-}
-else if (sourceDir && sourceDirExists) {
+} else if (sourceDir && sourceDirExists) {
 	parseAndStoreDir(sourceDir);
 }

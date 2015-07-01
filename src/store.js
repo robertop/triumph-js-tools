@@ -74,10 +74,10 @@ var Store = function() {
 	this.insert = function(resource) {
 		if (!this.stmt) {
 			this.stmt = this.db.prepare(
-	  			"INSERT INTO resources " +
-	  			"(key, function_name, object_name, line_number, column_position) " +
-	  			"VALUES " +
-	  			"(?, ?, ?, ?, ?)"
+				'INSERT INTO resources ' +
+				'(key, function_name, object_name, line_number, column_position) ' +
+				'VALUES ' +
+				'(?, ?, ?, ?, ?)'
 			);
 		}
 		this.stmt.run(

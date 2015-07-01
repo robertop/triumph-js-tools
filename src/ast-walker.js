@@ -72,21 +72,15 @@ var AstWalker = function() {
 	 * is called depending on the node type.
 	 */
 	this.walkNode = function(node) {
-		switch(node.type) {
-			case 'Program':
-				this.walkProgram(node);
-				break;
-			case 'FunctionDeclaration':
-				this.walkFunction(node);
-				break;
-			case 'FunctionExpression':
-				this.walkFunctionExpression(node);
-				break;
-			case 'VariableDeclaration':
-				this.walkVariableDeclaration(node);
-			default:
-				break;
-		};
+
+		// determine the function to call by concatenating
+		// the node type with the 'walk' prefix
+		var functionName = 'walk' + node.type;
+		if (this[functionName] && functionName != 'walkNode') {
+			this[functionName].call(this, node);
+		} else {
+			console.log('not found:' + functionName);
+		}
 	};
 
 	this.walkProgram = function(node) {
@@ -98,7 +92,7 @@ var AstWalker = function() {
 		}
 	};
 
-	this.walkFunction = function(node) {
+	this.walkFunctionDeclaration = function(node) {
 
 		// don't store anynymous functions for now
 		if (node.id != null && node.id.type === 'Identifier') {
@@ -146,6 +140,19 @@ var AstWalker = function() {
 				}
 			}
 		}
+	}
+
+	this.walkIfStatement = function(node) {
+		this.walkNode(node.test);
+		this.walkNode(node.consequent);
+		if (node.alternate) {
+			this.walkNode(node.alternate);
+		}
+	}
+
+	this.walkWithStatement = function(node) {
+		this.walkNode(node.object);
+		this.walkNode(node.body);
 	}
 };
 

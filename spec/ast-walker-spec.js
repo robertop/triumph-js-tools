@@ -67,39 +67,49 @@ describe('ast walker tests', function() {
 			type: 'Program',
 			body: []
 		};
-	});
 
-	it('should store a function', function() {
-		node.body = [
-			{
-				type: 'FunctionDeclaration',
-				loc: {
-					source: '',
-					start: {
-						line: 30,
-						column: 4
-					},
-					end: {
-						line: 40,
-						column: 0
-					}
-				},
-				id: {
-					type: 'Identifier',
-					name: 'extractName'
-				},
-				params: [],
-				body: {
-					type: 'BlockStatement',
-					body: []
-				}
-			}
-		];
+		// this is the expected resource, the same as the
+		// AST node returned by the functionDecl() function
 		resource.Key = 'extractName';
 		resource.FunctionName = 'extractName';
 		resource.ObjectName = '';
 		resource.LineNumber = 30;
 		resource.ColumnPosition = 4;
+	});
+
+	/**
+	 * @return an AST node for a function declaration
+	 */
+	var functionDecl = function() {
+		return {
+			type: 'FunctionDeclaration',
+			loc: {
+				source: '',
+				start: {
+					line: 30,
+					column: 4
+				},
+				end: {
+					line: 40,
+					column: 0
+				}
+			},
+			id: {
+				type: 'Identifier',
+				name: 'extractName'
+			},
+			params: [],
+			body: {
+				type: 'BlockStatement',
+				body: []
+			}
+		};
+	};
+
+	it('should store a function', function() {
+		node.body = [
+			functionDecl()
+		];
 
 		walker.walkNode(node);
 
@@ -152,6 +162,56 @@ describe('ast walker tests', function() {
 		resource.ObjectName = 'Utils';
 		resource.LineNumber = 2;
 		resource.ColumnPosition = 4;
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		expect(store.flush).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(actualResource).toEqual(resource);
+	});
+
+	it('should recurse if statement', function() {
+		node.body = [
+			{
+				type: 'IfStatement',
+				test: {
+					type: 'AssignmentExpression',
+					operator: '===',
+					left: {
+						type: 'Identifier',
+						name: 'name'
+					},
+					right: {
+						type: 'literal',
+						value: ''
+					}
+
+				},
+				consequent: functionDecl(),
+				alternate: null
+			}
+		];
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		expect(store.flush).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(actualResource).toEqual(resource);
+	});
+
+	it('should recurse with statement', function() {
+		node.body = [{
+			type: 'WithStatement',
+			object: {
+				type: 'Identifier',
+				name: 'name'
+			},
+			body: functionDecl()
+		}];
 
 		walker.walkNode(node);
 
