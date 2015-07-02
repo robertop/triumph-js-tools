@@ -106,6 +106,39 @@ describe('ast walker tests', function() {
 		};
 	};
 
+	it ('should not error on uninteresting expressions', function() {
+		node.body = [{
+			'type': 'VariableDeclaration',
+			'declarations': [{
+				'type': 'VariableDeclarator',
+				'id': {
+					'type': 'Identifier',
+					'name': 'sum'
+				},
+				'init': {
+					'type': 'BinaryExpression',
+					'operator': '+',
+					'left': {
+						'type': 'Literal',
+						'value': 3,
+						'raw': '3'
+					},
+					'right': {
+						'type': 'Literal',
+						'value': 4,
+						'raw': '4'
+					}
+				}
+			}],
+			'kind': 'var'
+		}];
+
+		walker.walkNode(node);
+
+		expect(store.insert.calls.count()).toEqual(0);
+		expect(store.flush.calls.count()).toEqual(0);
+	});
+
 	it('should store a function', function() {
 		node.body = [
 			functionDecl()

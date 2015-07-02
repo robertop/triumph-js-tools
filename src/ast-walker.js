@@ -57,6 +57,12 @@ var AstWalker = function() {
 	this.resource = null;
 
 	/**
+	 * keep track of inserts being done, so that we can commit
+	 * batches of INSERTs
+	 */
+	this.insertCount = 0;
+
+	/**
 	 * Initialize the store that will be used for persisting the
 	 * parsed resoures.
 	 *
@@ -65,6 +71,7 @@ var AstWalker = function() {
 	this.init = function(store) {
 		this.store = store;
 		this.resource = new Resource();
+		this.insertCount = 0;
 	};
 
 	/**
@@ -85,8 +92,9 @@ var AstWalker = function() {
 		for (var i = 0; i < node.body.length; i++) {
 			this.walkNode(node.body[i]);
 		}
-		if (node.body.length) {
+		if (this.insertCount > 0) {
 			this.store.flush();
+			this.insertCount = 0;
 		}
 	};
 
@@ -101,6 +109,7 @@ var AstWalker = function() {
 			this.resource.ColumnPosition = node.loc.start.column;
 
 			this.store.insert(this.resource);
+			this.insertCount++;
 		}
 		this.walkNode(node.body);
 	};
@@ -141,6 +150,7 @@ var AstWalker = function() {
 				this.resource.ColumnPosition = prop.key.loc.start.column;
 
 				this.store.insert(this.resource);
+				this.insertCount++;
 			}
 		}
 	};
@@ -255,6 +265,7 @@ var AstWalker = function() {
 			this.resource.ColumnPosition = node.left.property.loc.start.column;
 
 			this.store.insert(this.resource);
+			this.insertCount++;
 		}
 	};
 };

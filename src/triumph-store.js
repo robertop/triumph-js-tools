@@ -80,35 +80,27 @@ var db = store.initFile(outputFile);
 var astWalker = new AstWalker();
 astWalker.init(store);
 
-function parseAndStore(fileName) {
-	db.serialize(function() {
-		if (!outputExists) {
-			var create =
-				'CREATE TABLE resources(' +
-				'  id INTEGER NOT NULL PRIMARY KEY, ' +
-				'  key TEXT NOT NULL, ' +
-				'  function_name TEXT NOT NULL, ' +
-				'  object_name TEXT NOT NULL, ' +
-				'  line_number INTEGER NOT NULL, ' +
-				'  column_position INTEGER NOT NULL ' +
-				')';
-			db.run(create, [], function() {
-				storeAst(fileName);
-			});
-		} else {
-			storeAst(fileName);
-		}
+function createTables(callback) {
+	var create =
+		'CREATE TABLE resources(' +
+		'  id INTEGER NOT NULL PRIMARY KEY, ' +
+		'  key TEXT NOT NULL, ' +
+		'  function_name TEXT NOT NULL, ' +
+		'  object_name TEXT NOT NULL, ' +
+		'  line_number INTEGER NOT NULL, ' +
+		'  column_position INTEGER NOT NULL ' +
+		')';
+	db.run(create, [], function() {
+		callack();
 	});
 }
 
 var storeAst = function(fileName) {
 	try {
 		var contents = fs.readFileSync(fileName);
+		console.log('starting with ' + fileName);
 		var ast = esprima.parse(contents, {loc: true});
 		astWalker.walkNode(ast);
-		db.close(function() {
-			console.log('Done with ' + fileName);
-		});
 	} catch (e) {
 		console.log('exception with file ' + fileName);
 	}
@@ -119,7 +111,7 @@ function parseAndStoreDir(dir) {
 	for (var i = 0; i < files.length; i++) {
 		var fullPath = dir + '/' + files[i];
 		if (files[i].substr(files[i].length - 3, 3) == '.js') {
-			parseAndStore(fullPath);
+			storeAst(fullPath);
 		}
 		if (fs.statSync(fullPath).isDirectory()) {
 			parseAndStoreDir(fullPath);
@@ -128,7 +120,29 @@ function parseAndStoreDir(dir) {
 }
 
 if (sourceFile && sourceExists) {
-	parseAndStore(sourceFile);
+	db.serialize(function() {
+		if (!outputExists) {
+			createTables(function() {
+				storeAst(sourceFile);
+			});
+		} else {
+			storeAst(sourceFile);
+		}
+		db.close(function() {
+			console.log('Done with ' + sourceFile);
+		});
+	});
 } else if (sourceDir && sourceDirExists) {
-	parseAndStoreDir(sourceDir);
+	db.serialize(function() {
+		if (!outputExists) {
+			createTables(function() {
+				parseAndStoreDir(sourceDir);
+			});
+		} else {
+			parseAndStoreDir(sourceDir);
+		}
+		db.close(function() {
+			console.log('Done with ' + sourceDir);
+		});
+	});
 }
