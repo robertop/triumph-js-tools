@@ -123,7 +123,7 @@ var AstWalker = function() {
 	};
 
 	this.walkVariableDeclarator = function(node) {
-		this.resource.ObjectName = node.id.name;		
+		this.resource.ObjectName = node.id.name;
 		this.walkNode(node.init);
 	};
 
@@ -239,9 +239,9 @@ var AstWalker = function() {
 	this.walkAssignmentExpression = function(node) {
 		// not computed because we want '.' expressions
 		// obj.item     NOT  obj[item]
-		var isFunctionAssignment = 
+		var isFunctionAssignment =
 			node.right.type === 'FunctionExpression' &&
-			node.left.type == 'MemberExpression' && 
+			node.left.type == 'MemberExpression' &&
 			!node.left.computed &&
 			node.left.object.type === 'Identifier' &&
 			node.left.property.type === 'Identifier';
