@@ -78,8 +78,6 @@ var AstWalker = function() {
 		var functionName = 'walk' + node.type;
 		if (this[functionName] && functionName != 'walkNode') {
 			this[functionName].call(this, node);
-		} else {
-			console.log('not found:' + functionName);
 		}
 	};
 
@@ -230,6 +228,33 @@ var AstWalker = function() {
 			for (var i = 0; i < node.elements.length; i++) {
 				this.walkNode(node.elements[i]);
 			}
+		}
+	};
+
+	this.walkExpressionStatement = function(node) {
+		this.walkNode(node.expression);
+
+	};
+
+	this.walkAssignmentExpression = function(node) {
+		// not computed because we want '.' expressions
+		// obj.item     NOT  obj[item]
+		var isFunctionAssignment = 
+			node.right.type === 'FunctionExpression' &&
+			node.left.type == 'MemberExpression' && 
+			!node.left.computed &&
+			node.left.object.type === 'Identifier' &&
+			node.left.property.type === 'Identifier';
+		if (isFunctionAssignment) {
+			var objectName = node.left.object.name;
+			var functionName = node.left.property.name;
+			this.resource.Key =  objectName + '.' + functionName;
+			this.resource.FunctionName = functionName;
+			this.resource.ObjectName = objectName;
+			this.resource.LineNumber = node.left.property.loc.start.line;
+			this.resource.ColumnPosition = node.left.property.loc.start.column;
+
+			this.store.insert(this.resource);
 		}
 	};
 };

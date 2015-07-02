@@ -107,7 +107,7 @@ var storeAst = function(fileName) {
 		var ast = esprima.parse(contents, {loc: true});
 		astWalker.walkNode(ast);
 		db.close(function() {
-			console.log('Done.');
+			console.log('Done with ' + fileName);
 		});
 	} catch (e) {
 		console.log('exception with file ' + fileName);

@@ -518,7 +518,67 @@ describe('ast walker tests', function() {
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
 		expect(resource).toEqual(actualResource);
+	});
 
+	it('should recurse member expressions', function() {
+		node.body = [{
+			"type": "ExpressionStatement",
+			"expression": {
+				"type": "AssignmentExpression",
+				"operator": "=",
+				"left": {
+					"type": "MemberExpression",
+					"computed": false,
+					"object": {
+						"type": "Identifier",
+						"name": "item"
+					},
+					"property": {
+						"type": "Identifier",
+						"name": "extractName",
+						"loc": {
+							"start": {
+								"line": 2,
+								"column": 4
+							}
+						}
+					}
+				},
+				"right": {
+					"type": "FunctionExpression",
+					"id": null,
+					"params": [],
+					"defaults": [],
+					"body": {
+						"type": "BlockStatement",
+						"body": [{
+							"type": "ReturnStatement",
+							"argument": {
+								"type": "Literal",
+								"value": "name",
+								"raw": "'name'"
+							}
+						}]
+					},
+					"generator": false,
+					"expression": false
+				}
+			}
+		}];
+
+		resource.Key = 'item.extractName';
+		resource.FunctionName = 'extractName';
+		resource.ObjectName = 'item';
+		resource.LineNumber = 2;
+		resource.ColumnPosition = 4;
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		expect(store.flush).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(resource).toEqual(actualResource);
 	});
 });
 
