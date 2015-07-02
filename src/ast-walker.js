@@ -120,24 +120,29 @@ var AstWalker = function() {
 	this.walkVariableDeclaration = function(node) {
 		var decls = node.declarations;
 		for (var i = 0; i < decls.length; i++) {
-			var decl = decls[i];
-			if (decl.type  == 'VariableDeclarator') {
-				var objectName = decl.id.name;
-				if (decl.init && decl.init.type == 'ObjectExpression') {
-					for (var j = 0; j < decl.init.properties.length; j++) {
-						var prop = decl.init.properties[j];
-						if (prop.value && prop.value.type == 'FunctionExpression') {
+			this.walkNode(decls[i]);
+		}
+	};
 
-							this.resource.Key =  objectName + '.' + prop.key.name;
-							this.resource.FunctionName = prop.key.name;
-							this.resource.ObjectName = objectName;
-							this.resource.LineNumber = prop.key.loc.start.line;
-							this.resource.ColumnPosition = prop.key.loc.start.column;
+	this.walkVariableDeclarator = function(node) {
+		this.resource.ObjectName = node.id.name;		
+		this.walkNode(node.init);
+	};
 
-							this.store.insert(this.resource);
-						}
-					}
+	this.walkObjectExpression = function(node) {
+		for (var j = 0; j < node.properties.length; j++) {
+			var prop = node.properties[j];
+			if (prop.value && prop.value.type == 'FunctionExpression') {
+				var key = prop.key.name;
+				if (this.resource.ObjectName) {
+					key = this.resource.ObjectName + '.' + prop.key.name;
 				}
+				this.resource.Key =  key;
+				this.resource.FunctionName = prop.key.name;
+				this.resource.LineNumber = prop.key.loc.start.line;
+				this.resource.ColumnPosition = prop.key.loc.start.column;
+
+				this.store.insert(this.resource);
 			}
 		}
 	};
@@ -215,6 +220,17 @@ var AstWalker = function() {
 		this.walkNode(node.left);
 		this.walkNode(node.right);
 		this.walkNode(node.body);
+	};
+
+	this.walkArrayExpression = function(node) {
+		if (node.elements) {
+
+			// the WalkObjectExpression uses this
+			this.resource.ObjectName = '';
+			for (var i = 0; i < node.elements.length; i++) {
+				this.walkNode(node.elements[i]);
+			}
+		}
 	};
 };
 

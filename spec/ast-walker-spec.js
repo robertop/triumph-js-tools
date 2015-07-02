@@ -117,7 +117,7 @@ describe('ast walker tests', function() {
 		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
-		expect(actualResource).toEqual(resource);
+		expect(resource).toEqual(actualResource);
 	});
 
 	it('should store global objects', function() {
@@ -169,7 +169,7 @@ describe('ast walker tests', function() {
 		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
-		expect(actualResource).toEqual(resource);
+		expect(resource).toEqual(actualResource);
 	});
 
 	it('should recurse if statement', function() {
@@ -200,7 +200,7 @@ describe('ast walker tests', function() {
 		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
-		expect(actualResource).toEqual(resource);
+		expect(resource).toEqual(actualResource);
 	});
 
 	it('should recurse with statement', function() {
@@ -219,7 +219,7 @@ describe('ast walker tests', function() {
 		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
-		expect(actualResource).toEqual(resource);
+		expect(resource).toEqual(actualResource);
 	});
 
 	it('should recurse switch statement', function() {
@@ -255,7 +255,7 @@ describe('ast walker tests', function() {
 		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
-		expect(actualResource).toEqual(resource);
+		expect(resource).toEqual(actualResource);
 	});
 
 	it('should recurse try-catch', function() {
@@ -290,11 +290,11 @@ describe('ast walker tests', function() {
 		expect(store.insert.calls.count()).toEqual(2);
 		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
-		expect(actualResource).toEqual(resource);
+		expect(resource).toEqual(actualResource);
 
 		// should iterate down catch block also
 		actualResource = store.insert.calls.argsFor(1)[0];
-		expect(actualResource).toEqual(resource);
+		expect(resource).toEqual(actualResource);
 	});
 
 	it('should recurse while statement', function() {
@@ -326,7 +326,7 @@ describe('ast walker tests', function() {
 		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
-		expect(actualResource).toEqual(resource);
+		expect(resource).toEqual(actualResource);
 	});
 
 	it('should recurse DO while statement', function() {
@@ -358,7 +358,7 @@ describe('ast walker tests', function() {
 		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
-		expect(actualResource).toEqual(resource);
+		expect(resource).toEqual(actualResource);
 	});
 
 	it('should recurse for statement', function() {
@@ -411,7 +411,7 @@ describe('ast walker tests', function() {
 		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
-		expect(actualResource).toEqual(resource);
+		expect(resource).toEqual(actualResource);
 	});
 
 	it('should recurse for in statement', function() {
@@ -439,7 +439,86 @@ describe('ast walker tests', function() {
 		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
-		expect(actualResource).toEqual(resource);
+		expect(resource).toEqual(actualResource);
+	});
+
+	it('should recurse down array expression', function() {
+		// code for the generated AST
+		//var items = [{
+		//	extractName: function() {
+		//		return 'name ';
+		//	}
+		//}];
+		node.body = [{
+			"type": "VariableDeclaration",
+			"declarations": [{
+				"type": "VariableDeclarator",
+				"id": {
+					"type": "Identifier",
+					"name": "items"
+				},
+				"init": {
+					"type": "ArrayExpression",
+					"elements": [{
+						"type": "ObjectExpression",
+						"properties": [{
+							"type": "Property",
+							"key": {
+								"type": "Identifier",
+								"name": "extractName",
+								"loc": {
+									"start": {
+										"line": 2,
+										"column": 4
+									}
+								}
+							},
+							"computed": false,
+							"value": {
+								"type": "FunctionExpression",
+								"id": null,
+								"params": [],
+								"defaults": [],
+								"body": {
+									"type": "BlockStatement",
+									"body": [
+										{
+											"type": "ReturnStatement",
+											"argument": {
+												"type": "Literal",
+												"value": "name",
+												"raw": "'name'"
+											}
+										}
+									]
+								},
+								"generator": false,
+								"expression": false
+							},
+							"kind": "init",
+							"method": false,
+							"shorthand": false
+						}]
+					}]
+				},
+				"kind": "var"
+			}]
+		}];
+
+		resource.Key = 'extractName';
+		resource.FunctionName = 'extractName';
+		resource.ObjectName = '';
+		resource.LineNumber = 2;
+		resource.ColumnPosition = 4;
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		expect(store.flush).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(resource).toEqual(actualResource);
+
 	});
 });
 
