@@ -296,5 +296,69 @@ describe('ast walker tests', function() {
 		actualResource = store.insert.calls.argsFor(1)[0];
 		expect(actualResource).toEqual(resource);
 	});
+
+	it('should recurse while statement', function() {
+		node.body = [{
+			type: 'WhileStatement',
+			test: {
+				type: 'BinaryExpression',
+				operator: '>',
+				left: {
+					type: 'Identifier',
+					name: 'x'
+				},
+				right: {
+					type: 'Literal',
+					value: '0'
+				}
+			},
+			body: {
+				type: 'BlockStatement',
+				body: [
+					functionDecl()
+				]
+			}
+		}];
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		expect(store.flush).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(actualResource).toEqual(resource);
+	});
+
+	it('should recurse DO while statement', function() {
+		node.body = [{
+			type: 'DoWhileStatement',
+			test: {
+				type: 'BinaryExpression',
+				operator: '>',
+				left: {
+					type: 'Identifier',
+					name: 'x'
+				},
+				right: {
+					type: 'Literal',
+					value: '0'
+				}
+			},
+			body: {
+				type: 'BlockStatement',
+				body: [
+					functionDecl()
+				]
+			}
+		}];
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		expect(store.flush).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(actualResource).toEqual(resource);
+	});
 });
 

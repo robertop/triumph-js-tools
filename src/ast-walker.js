@@ -186,7 +186,16 @@ var AstWalker = function() {
 
 	this.walkCatchClause = function(node) {
 		this.walkNode(node.body);
+	};
 
+	this.walkWhileStatement = function(node) {
+		this.walkNode(node.test);
+		this.walkNode(node.body);
+	};
+
+	this.walkDoWhileStatement = function(node) {
+		this.walkNode(node.test);
+		this.walkNode(node.body);
 	};
 };
 
