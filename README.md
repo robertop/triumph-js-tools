@@ -9,6 +9,8 @@ file is then used by Triumph during auto-completion for JavaScript files.
 
 Project setup
 -------------
+You will need to install the node package manager NPM. This can be done in several ways; in Mac OS X you install NPM via homebrew. On linux, it is available in most package managers. In Windows, you can use chocolatey to install NPM.
+
 To install the project's depenencies 
 
 ```
