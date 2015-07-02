@@ -11,11 +11,16 @@
     "esprima": "^2.3.0"
   },
   "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-jasmine": "^2.0.1",
+    "gulp-jscs": "^1.6.0",
+    "gulp-watch": "^4.2.4",
     "jscs": "1.13.1"
   },
   "scripts": {
     "test": "node_modules/.bin/jasmine",
-    "lint": "node_modules/.bin/jscs src spec"
+    "lint": "node_modules/.bin/jscs src spec",
+    "watch-test": "node_modules/.bin/gulp watch-test"
   },
   "keywords": [
     "IDE",

@@ -9,7 +9,26 @@ file is then used by Triumph during auto-completion for JavaScript files.
 
 Project setup
 -------------
+To install the project's depenencies 
 
 ```
     npm install
+```
+
+To watch the source code for changes and run all tests on change
+
+```
+    npm run watch-test
+```
+
+To run all tests
+
+```
+    npm test
+```
+
+To run code style checker and linter. This should be on every commit / push.
+
+```
+    npm run lint
 ```
