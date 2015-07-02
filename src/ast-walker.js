@@ -95,7 +95,7 @@ var AstWalker = function() {
 	this.walkFunctionDeclaration = function(node) {
 
 		// don't store anynymous functions for now
-		if (node.id != null && node.id.type === 'Identifier') {
+		if (node.id !== null && node.id.type === 'Identifier') {
 			this.resource.Key  = node.id.name;
 			this.resource.FunctionName = node.id.name;
 			this.resource.ObjectName = '';
@@ -140,7 +140,7 @@ var AstWalker = function() {
 				}
 			}
 		}
-	}
+	};
 
 	this.walkIfStatement = function(node) {
 		this.walkNode(node.test);
@@ -148,12 +148,12 @@ var AstWalker = function() {
 		if (node.alternate) {
 			this.walkNode(node.alternate);
 		}
-	}
+	};
 
 	this.walkWithStatement = function(node) {
 		this.walkNode(node.object);
 		this.walkNode(node.body);
-	}
+	};
 };
 
 module.exports = AstWalker;

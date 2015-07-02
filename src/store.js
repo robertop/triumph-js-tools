@@ -99,7 +99,7 @@ var Store = function() {
 		if (this.db) {
 			this.db.close();
 		}
-	}
+	};
 };
 
 module.exports = Store;

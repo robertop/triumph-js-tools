@@ -113,5 +113,5 @@ describe('store tests', function() {
 				done();
 			});
 		});
-	})
+	});
 });

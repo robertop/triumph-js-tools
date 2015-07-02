@@ -29,7 +29,7 @@ To run all tests
     npm test
 ```
 
-To run code style checker and linter. This should be on every commit / push.
+To run code style checker and linter (jshint). This should be on every commit / push.
 
 ```
     npm run lint
