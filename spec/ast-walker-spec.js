@@ -360,5 +360,86 @@ describe('ast walker tests', function() {
 
 		expect(actualResource).toEqual(resource);
 	});
+
+	it('should recurse for statement', function() {
+		node.body = [{
+			type: 'ForStatement',
+			init: {
+				type: 'AssignmentExpression',
+				operator: '=',
+				left: {
+					type: 'Identifier',
+					name: 'i'
+				},
+				right: {
+					type: 'Literal',
+					value: '0'
+				}
+			},
+			test: {
+				type: 'BinaryExpression',
+				operator: '<',
+				left: {
+					type: 'Identifier',
+					name: 'i'
+				},
+				right: {
+					type: 'Literal',
+					value: '10'
+				}
+			},
+			update: {
+				type: 'UpdateExpression',
+				operator: '++',
+				argument: {
+					type: 'Identifier',
+					name: 'i'
+				},
+				prefix: false
+			},
+			body: {
+				type: 'BlockStatement',
+				body: [
+					functionDecl()
+				]
+			}
+		}];
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		expect(store.flush).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(actualResource).toEqual(resource);
+	});
+
+	it('should recurse for in statement', function() {
+		node.body = [{
+			type: 'ForInStatement',
+			left: {
+				type: 'Identifier',
+				name: 'obj'
+			},
+			right: {
+				type: 'Identifier',
+				name: 'items'
+			},
+			body: {
+				type: 'BlockStatement',
+				body: [
+					functionDecl()
+				]
+			}
+		}];
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		expect(store.flush).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(actualResource).toEqual(resource);
+	});
 });
 

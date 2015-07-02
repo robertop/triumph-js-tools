@@ -197,6 +197,25 @@ var AstWalker = function() {
 		this.walkNode(node.test);
 		this.walkNode(node.body);
 	};
+
+	this.walkForStatement = function(node) {
+		if (node.init) {
+			this.walkNode(node.init);
+		}
+		if (node.test) {
+			this.walkNode(node.test);
+		}
+		if (node.update) {
+			this.walkNode(node.update);
+		}
+		this.walkNode(node.body);
+	};
+
+	this.walkForInStatement = function(node) {
+		this.walkNode(node.left);
+		this.walkNode(node.right);
+		this.walkNode(node.body);
+	};
 };
 
 module.exports = AstWalker;
