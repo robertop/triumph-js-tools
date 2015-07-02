@@ -104,10 +104,10 @@ var AstWalker = function() {
 
 			this.store.insert(this.resource);
 		}
-		this.walkBlock(node.body);
+		this.walkNode(node.body);
 	};
 
-	this.walkBlock = function(node) {
+	this.walkBlockStatement = function(node) {
 		for (var i = 0; i < node.body.length; i++) {
 			this.walkNode(node.body[i]);
 		}
@@ -167,6 +167,26 @@ var AstWalker = function() {
 				}
 			}
 		}
+	};
+
+	this.walkTryStatement = function(node) {
+		this.walkNode(node.block);
+		if (node.handlers) {
+			for (var i = 0; i < node.handlers.length; i++) {
+				this.walkNode(node.handlers[i]);
+			}
+		}
+		if (node.handler) {
+			this.walkNode(node.handler);
+		}
+		if (node.finalizer) {
+			this.walkNode(node.finalizer);
+		}
+	};
+
+	this.walkCatchClause = function(node) {
+		this.walkNode(node.body);
+
 	};
 };
 

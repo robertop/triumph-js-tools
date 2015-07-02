@@ -256,6 +256,45 @@ describe('ast walker tests', function() {
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
 		expect(actualResource).toEqual(resource);
-	})
+	});
+
+	it('should recurse try-catch', function() {
+		node.body = [{
+			type: 'TryStatement',
+			block: {
+				type: 'BlockStatement',
+				body: [
+					functionDecl()
+				]
+			},
+			guardedHandlers: [],
+			handlers: [
+				{
+					type: 'CatchClause',
+					param: {
+						type: 'Identifier',
+						name: 'e'
+					},
+					body: {
+						type: 'BlockStatement',
+						body: [
+						functionDecl()
+						]
+					}
+				}
+			]
+		}];
+
+		walker.walkNode(node);
+
+		expect(store.insert.calls.count()).toEqual(2);
+		expect(store.flush).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+		expect(actualResource).toEqual(resource);
+
+		// should iterate down catch block also
+		actualResource = store.insert.calls.argsFor(1)[0];
+		expect(actualResource).toEqual(resource);
+	});
 });
 
