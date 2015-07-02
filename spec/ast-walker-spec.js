@@ -221,5 +221,41 @@ describe('ast walker tests', function() {
 
 		expect(actualResource).toEqual(resource);
 	});
+
+	it('should recurse switch statement', function() {
+		node.body = [
+			{
+				type: 'SwitchStatement',
+				discriminant: {
+					type: 'Identifier',
+					name: 's',
+				},
+				cases: [
+					{
+						type: 'SwitchCase',
+						test: {
+							type: 'Literal',
+							value: 'one'
+						},
+						consequent: [
+							functionDecl(),
+							{
+								type: 'BreakStatement',
+								label: null
+							}
+						]
+					}
+				]
+			}
+		];
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		expect(store.flush).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(actualResource).toEqual(resource);
+	})
 });
 

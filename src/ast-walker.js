@@ -154,6 +154,20 @@ var AstWalker = function() {
 		this.walkNode(node.object);
 		this.walkNode(node.body);
 	};
+
+	this.walkSwitchStatement = function(node) {
+		this.walkNode(node.discriminant);
+		if (node.cases) {
+			for (var i = 0; i < node.cases.length; i++) {
+				this.walkNode(node.cases[i]);
+				if (node.cases[i].consequent) {
+					for (var  j = 0; j < node.cases[i].consequent.length; j++) {
+						this.walkNode(node.cases[i].consequent[j]);
+					}
+				}
+			}
+		}
+	};
 };
 
 module.exports = AstWalker;
