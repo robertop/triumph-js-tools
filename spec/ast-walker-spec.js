@@ -60,7 +60,7 @@ describe('ast walker tests', function() {
 	beforeEach(function() {
 		walker = new AstWalker();
 		resource = new Resource();
-		store = jasmine.createSpyObj('Store', ['insert', 'flush']);
+		store = jasmine.createSpyObj('Store', ['insert']);
 		walker.init(store);
 
 		node = {
@@ -136,7 +136,6 @@ describe('ast walker tests', function() {
 		walker.walkNode(node);
 
 		expect(store.insert.calls.count()).toEqual(0);
-		expect(store.flush.calls.count()).toEqual(0);
 	});
 
 	it('should store a function', function() {
@@ -147,7 +146,6 @@ describe('ast walker tests', function() {
 		walker.walkNode(node);
 
 		expect(store.insert).toHaveBeenCalled();
-		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
 		expect(resource).toEqual(actualResource);
@@ -199,7 +197,6 @@ describe('ast walker tests', function() {
 		walker.walkNode(node);
 
 		expect(store.insert).toHaveBeenCalled();
-		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
 		expect(resource).toEqual(actualResource);
@@ -230,7 +227,6 @@ describe('ast walker tests', function() {
 		walker.walkNode(node);
 
 		expect(store.insert).toHaveBeenCalled();
-		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
 		expect(resource).toEqual(actualResource);
@@ -249,7 +245,6 @@ describe('ast walker tests', function() {
 		walker.walkNode(node);
 
 		expect(store.insert).toHaveBeenCalled();
-		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
 		expect(resource).toEqual(actualResource);
@@ -285,7 +280,6 @@ describe('ast walker tests', function() {
 		walker.walkNode(node);
 
 		expect(store.insert).toHaveBeenCalled();
-		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
 		expect(resource).toEqual(actualResource);
@@ -321,7 +315,6 @@ describe('ast walker tests', function() {
 		walker.walkNode(node);
 
 		expect(store.insert.calls.count()).toEqual(2);
-		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 		expect(resource).toEqual(actualResource);
 
@@ -356,7 +349,6 @@ describe('ast walker tests', function() {
 		walker.walkNode(node);
 
 		expect(store.insert).toHaveBeenCalled();
-		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
 		expect(resource).toEqual(actualResource);
@@ -388,7 +380,6 @@ describe('ast walker tests', function() {
 		walker.walkNode(node);
 
 		expect(store.insert).toHaveBeenCalled();
-		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
 		expect(resource).toEqual(actualResource);
@@ -441,7 +432,6 @@ describe('ast walker tests', function() {
 		walker.walkNode(node);
 
 		expect(store.insert).toHaveBeenCalled();
-		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
 		expect(resource).toEqual(actualResource);
@@ -469,7 +459,6 @@ describe('ast walker tests', function() {
 		walker.walkNode(node);
 
 		expect(store.insert).toHaveBeenCalled();
-		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
 		expect(resource).toEqual(actualResource);
@@ -547,7 +536,6 @@ describe('ast walker tests', function() {
 		walker.walkNode(node);
 
 		expect(store.insert).toHaveBeenCalled();
-		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
 		expect(resource).toEqual(actualResource);
@@ -608,7 +596,6 @@ describe('ast walker tests', function() {
 		walker.walkNode(node);
 
 		expect(store.insert).toHaveBeenCalled();
-		expect(store.flush).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
 
 		expect(resource).toEqual(actualResource);

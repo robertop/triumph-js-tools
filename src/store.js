@@ -86,18 +86,19 @@ var Store = function() {
 		);
 	};
 
-	/**
-	 * Commit all saves into the DB.
-	 */
-	this.flush = function() {
+	this.finalize = function() {
 		if (this.stmt) {
 			this.stmt.finalize();
+			this.stmt = null;
 		}
 	};
 
-	this.close = function() {
+	this.close = function(callback) {
+		if (this.stmt) {
+			this.stmt.finalize();
+		}
 		if (this.db) {
-			this.db.close();
+			this.db.close(callback);
 		}
 	};
 };

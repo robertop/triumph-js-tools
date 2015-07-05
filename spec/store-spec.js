@@ -87,7 +87,7 @@ describe('store tests', function() {
 
 	it('should save a resource', function(done) {
 		store.insert(resource);
-		store.flush();
+		store.finalize();
 		db.serialize(function() {
 			db.get('SELECT COUNT(*) as cnt FROM resources', [], function(err, row) {
 				expect(err).toBeNull();

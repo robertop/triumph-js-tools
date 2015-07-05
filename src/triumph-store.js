@@ -90,9 +90,7 @@ function createTables(callback) {
 		'  line_number INTEGER NOT NULL, ' +
 		'  column_position INTEGER NOT NULL ' +
 		')';
-	db.run(create, [], function() {
-		callack();
-	});
+	db.run(create, [], callback);
 }
 
 var storeAst = function(fileName) {
@@ -102,7 +100,9 @@ var storeAst = function(fileName) {
 		var ast = esprima.parse(contents, {loc: true});
 		astWalker.walkNode(ast);
 	} catch (e) {
-		console.log('exception with file ' + fileName);
+		console.log('exception with file ' + fileName + ':' + e.fileName +  ' on line ' + e.line_number);
+		console.log(e);
+		console.log(e.stack);
 	}
 };
 
@@ -128,9 +128,7 @@ if (sourceFile && sourceExists) {
 		} else {
 			storeAst(sourceFile);
 		}
-		db.close(function() {
-			console.log('Done with ' + sourceFile);
-		});
+		store.finalize();
 	});
 } else if (sourceDir && sourceDirExists) {
 	db.serialize(function() {
@@ -141,8 +139,6 @@ if (sourceFile && sourceExists) {
 		} else {
 			parseAndStoreDir(sourceDir);
 		}
-		db.close(function() {
-			console.log('Done with ' + sourceDir);
-		});
+		store.finalize();
 	});
 }
