@@ -600,5 +600,222 @@ describe('ast walker tests', function() {
 
 		expect(resource).toEqual(actualResource);
 	});
+
+	it('should capture function defined inside an enclosing anonymous function', function() {
+		node.body = [{
+			'type': 'ExpressionStatement',
+			'expression': {
+				'type': 'CallExpression',
+				'callee': {
+					'type': 'Identifier',
+					'name': 'define'
+				},
+				'arguments': [
+				{
+					'type': 'ArrayExpression',
+					'elements': []
+				},
+				{
+					'type': 'FunctionExpression',
+					'id': null,
+					'params': [{
+						'type': 'Identifier',
+						'name': 'item'
+					}],
+					'defaults': [],
+					'body': {
+						'type': 'BlockStatement',
+						'body': [{
+							'type': 'ExpressionStatement',
+							'expression': {
+								'type': 'AssignmentExpression',
+								'operator': '=',
+								'left': {
+									'type': 'MemberExpression',
+									'computed': false,
+									'object': {
+										'type': 'Identifier',
+										'name': 'item'
+									},
+									'property': {
+										'type': 'Identifier',
+										'name': 'extractName',
+										'loc': {
+											'start': {
+												'line': 2,
+												'column': 4
+											}
+										}
+									}
+								},
+								'right': {
+									'type': 'FunctionExpression',
+									'id': null,
+									'params': [],
+									'defaults': [],
+									'body': {
+										'type': 'BlockStatement',
+										'body': []
+									},
+									'generator': false,
+									'expression': false
+								}
+							}
+						}]
+					},
+					'generator': false,
+					'expression': false
+				}]
+			}
+		}];
+
+		resource.Key = 'item.extractName';
+		resource.FunctionName = 'extractName';
+		resource.ObjectName = 'item';
+		resource.LineNumber = 2;
+		resource.ColumnPosition = 4;
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(resource).toEqual(actualResource);
+	});
+
+	it('should recurse down exported functions', function() {
+		node.body = [{
+			'type': 'ExpressionStatement',
+			'expression': {
+				'type': 'AssignmentExpression',
+				'operator': '=',
+				'left': {
+					'type': 'MemberExpression',
+					'computed': false,
+					'object': {
+						'type': 'Identifier',
+						'name': 'module'
+					},
+					'property': {
+						'type': 'Identifier',
+						'name': 'exports'
+					}
+				},
+				'right': {
+					'type': 'ObjectExpression',
+					'properties': [{
+						'type': 'Property',
+						'key': {
+							'type': 'Identifier',
+							'name': 'extractName',
+							'loc': {
+								'start': {
+									'line': 2,
+									'column': 4
+								}
+							}
+						},
+						'computed': false,
+						'value': {
+							'type': 'FunctionExpression',
+							'id': null,
+							'params': [],
+							'defaults': [],
+							'body': {
+								'type': 'BlockStatement',
+								'body': []
+							},
+							'generator': false,
+							'expression': false
+						},
+						'kind': 'init',
+						'method': false,
+						'shorthand': false
+					}]
+				}
+			}
+		}];
+
+		resource.Key = 'extractName';
+		resource.FunctionName = 'extractName';
+		resource.ObjectName = '';
+		resource.LineNumber = 2;
+		resource.ColumnPosition = 4;
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(resource).toEqual(actualResource);
+
+	});
+
+	it('should recurse function parameters', function() {
+		node.body = [{
+			'type': 'ExpressionStatement',
+				'expression': {
+					'type': 'CallExpression',
+					'callee': {
+						'type': 'MemberExpression',
+						'computed': false,
+						'object': {
+							'type': 'Identifier',
+							'name': 'jQuery'
+						},
+						'property': {
+							'type': 'Identifier',
+							'name': 'extend'
+						}
+					},
+					'arguments': [{
+					'type': 'ObjectExpression',
+					'properties': [{
+						'type': 'Property',
+						'key': {
+							'type': 'Identifier',
+							'name': 'extractName',
+							'loc': {
+								'start': {
+									'line': 2,
+									'column': 4
+								}
+							}
+						},
+						'computed': false,
+						'value': {
+							'type': 'FunctionExpression',
+							'id': null,
+							'params': [],
+							'defaults': [],
+							'body': {
+								'type': 'BlockStatement',
+								'body': []
+							},
+							'generator': false,
+							'expression': false
+						},
+						'kind': 'init',
+						'method': false,
+						'shorthand': false
+					}]
+				}]
+			}
+		}];
+
+		resource.Key = 'extractName';
+		resource.FunctionName = 'extractName';
+		resource.ObjectName = '';
+		resource.LineNumber = 2;
+		resource.ColumnPosition = 4;
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(resource).toEqual(actualResource);
+
+	});
 });
 

@@ -111,7 +111,9 @@ var AstWalker = function() {
 	};
 
 	this.walkFunctionExpression = function(node) {
-		this.walkBlock(node.body);
+		if (node.body) {
+			this.walkNode(node.body);
+		}
 	};
 
 	this.walkVariableDeclaration = function(node) {
@@ -122,14 +124,16 @@ var AstWalker = function() {
 	};
 
 	this.walkVariableDeclarator = function(node) {
-		this.resource.ObjectName = node.id.name;
-		this.walkNode(node.init);
+		if (node.init) {
+			this.resource.ObjectName = node.id.name;
+			this.walkNode(node.init);
+		}
 	};
 
 	this.walkObjectExpression = function(node) {
 		for (var j = 0; j < node.properties.length; j++) {
 			var prop = node.properties[j];
-			if (prop.value && prop.value.type == 'FunctionExpression') {
+			if (prop.value && prop.value.type == 'FunctionExpression' && prop.key.type === 'Identifier') {
 				var key = prop.key.name;
 				if (this.resource.ObjectName) {
 					key = this.resource.ObjectName + '.' + prop.key.name;
@@ -255,7 +259,22 @@ var AstWalker = function() {
 
 			this.store.insert(this.resource);
 		}
+		else {
+			this.walkNode(node.right);
+		}
 	};
+
+	this.walkCallExpression = function(node) {
+		for (var i = 0; i < node.arguments.length; i++) {
+			if (node.arguments[i].type === 'FunctionExpression') {
+				this.walkNode(node.arguments[i].body);
+			}
+			if (node.arguments[i].type === 'ObjectExpression') {
+				this.resource.ObjectName = '';
+				this.walkNode(node.arguments[i]);
+			}
+		}	
+	}
 };
 
 module.exports = AstWalker;
