@@ -68,6 +68,17 @@ var AstWalker = function() {
 	};
 
 	/**
+	 * link resources to file and source directory
+	 *
+	 * @param fileItem a FileItem object
+	 * @param source a Source object
+	 */
+	this.setFileAndSource = function(fileItem, source) {
+		this.resource.FileItemId = fileItem.FileItemId;
+		this.resource.SourceId = source.SourceId;
+	};
+
+	/**
 	 * Walk down a node.  The appropriate 'walkXXX' function
 	 * is called depending on the node type.
 	 */
@@ -94,8 +105,9 @@ var AstWalker = function() {
 		// don't store anynymous functions for now
 		if (node.id !== null && node.id.type === 'Identifier') {
 			this.resource.Key  = node.id.name;
-			this.resource.FunctionName = node.id.name;
-			this.resource.ObjectName = '';
+			this.resource.Identifier = node.id.name;
+			this.resource.Signature = '';
+			this.resource.Comment = '';
 			this.resource.LineNumber =  node.loc.start.line;
 			this.resource.ColumnPosition = node.loc.start.column;
 
@@ -125,7 +137,7 @@ var AstWalker = function() {
 
 	this.walkVariableDeclarator = function(node) {
 		if (node.init) {
-			this.resource.ObjectName = node.id.name;
+			this.ObjectName = node.id.name;
 			this.walkNode(node.init);
 		}
 	};
@@ -137,11 +149,13 @@ var AstWalker = function() {
 				prop.value.type == 'FunctionExpression' &&
 				prop.key.type === 'Identifier') {
 				var key = prop.key.name;
-				if (this.resource.ObjectName) {
-					key = this.resource.ObjectName + '.' + prop.key.name;
+				if (this.ObjectName) {
+					key = this.ObjectName + '.' + prop.key.name;
 				}
 				this.resource.Key =  key;
-				this.resource.FunctionName = prop.key.name;
+				this.resource.Identifier = prop.key.name;
+				this.resource.Signature = '';
+				this.resource.Comment = '';
 				this.resource.LineNumber = prop.key.loc.start.line;
 				this.resource.ColumnPosition = prop.key.loc.start.column;
 
@@ -231,7 +245,7 @@ var AstWalker = function() {
 		if (node.elements) {
 
 			// the WalkObjectExpression uses this
-			this.resource.ObjectName = '';
+			this.ObjectName = '';
 			for (var i = 0; i < node.elements.length; i++) {
 				this.walkNode(node.elements[i]);
 			}
@@ -256,8 +270,9 @@ var AstWalker = function() {
 			var objectName = node.left.object.name;
 			var functionName = node.left.property.name;
 			this.resource.Key =  objectName + '.' + functionName;
-			this.resource.FunctionName = functionName;
-			this.resource.ObjectName = objectName;
+			this.resource.Identifier = functionName;
+			this.resource.Signature = '';
+			this.resource.Comment = '';
 			this.resource.LineNumber = node.left.property.loc.start.line;
 			this.resource.ColumnPosition = node.left.property.loc.start.column;
 
@@ -273,7 +288,7 @@ var AstWalker = function() {
 				this.walkNode(node.arguments[i].body);
 			}
 			if (node.arguments[i].type === 'ObjectExpression') {
-				this.resource.ObjectName = '';
+				this.ObjectName = '';
 				this.walkNode(node.arguments[i]);
 			}
 		}

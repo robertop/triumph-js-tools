@@ -70,11 +70,22 @@ describe('ast walker tests', function() {
 
 		// this is the expected resource, the same as the
 		// AST node returned by the functionDecl() function
+		resource.FileItemId = 300;
+		resource.SourceId = 24;
 		resource.Key = 'extractName';
-		resource.FunctionName = 'extractName';
-		resource.ObjectName = '';
+		resource.Identifier = 'extractName';
+		resource.Signature = '';
+		resource.Comment = '';
 		resource.LineNumber = 30;
 		resource.ColumnPosition = 4;
+
+		var fileItem = {
+			FileItemId: 300
+		};
+		var source = {
+			SourceId: 24
+		};
+		walker.setFileAndSource(fileItem, source);
 	});
 
 	/**
@@ -189,8 +200,7 @@ describe('ast walker tests', function() {
 		}];
 
 		resource.Key = 'Utils.extractName';
-		resource.FunctionName = 'extractName';
-		resource.ObjectName = 'Utils';
+		resource.Identifier = 'extractName';
 		resource.LineNumber = 2;
 		resource.ColumnPosition = 4;
 
@@ -528,8 +538,7 @@ describe('ast walker tests', function() {
 		}];
 
 		resource.Key = 'extractName';
-		resource.FunctionName = 'extractName';
-		resource.ObjectName = '';
+		resource.Identifier = 'extractName';
 		resource.LineNumber = 2;
 		resource.ColumnPosition = 4;
 
@@ -588,8 +597,7 @@ describe('ast walker tests', function() {
 		}];
 
 		resource.Key = 'item.extractName';
-		resource.FunctionName = 'extractName';
-		resource.ObjectName = 'item';
+		resource.Identifier = 'extractName';
 		resource.LineNumber = 2;
 		resource.ColumnPosition = 4;
 
@@ -671,8 +679,7 @@ describe('ast walker tests', function() {
 		}];
 
 		resource.Key = 'item.extractName';
-		resource.FunctionName = 'extractName';
-		resource.ObjectName = 'item';
+		resource.Identifier = 'extractName';
 		resource.LineNumber = 2;
 		resource.ColumnPosition = 4;
 
@@ -738,8 +745,7 @@ describe('ast walker tests', function() {
 		}];
 
 		resource.Key = 'extractName';
-		resource.FunctionName = 'extractName';
-		resource.ObjectName = '';
+		resource.Identifier = 'extractName';
 		resource.LineNumber = 2;
 		resource.ColumnPosition = 4;
 
@@ -805,8 +811,7 @@ describe('ast walker tests', function() {
 		}];
 
 		resource.Key = 'extractName';
-		resource.FunctionName = 'extractName';
-		resource.ObjectName = '';
+		resource.Identifier = 'extractName';
 		resource.LineNumber = 2;
 		resource.ColumnPosition = 4;
 

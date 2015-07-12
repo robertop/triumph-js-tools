@@ -84,9 +84,12 @@ function createTables(callback) {
 	var create =
 		'CREATE TABLE resources(' +
 		'  id INTEGER NOT NULL PRIMARY KEY, ' +
+		'  file_item_id INTEGER NOT NULL, ' +
+		'  source_id INTEGER NOT NULL, ' +
 		'  key TEXT NOT NULL, ' +
-		'  function_name TEXT NOT NULL, ' +
-		'  object_name TEXT NOT NULL, ' +
+		'  identifier TEXT NOT NULL, ' +
+		'  signature TEXT NOT NULL, ' +
+		'  comment TEXT NOT NULL, ' +
 		'  line_number INTEGER NOT NULL, ' +
 		'  column_position INTEGER NOT NULL ' +
 		')';

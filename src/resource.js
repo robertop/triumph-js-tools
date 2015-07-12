@@ -31,6 +31,21 @@
 var Resource = function() {
 
 	/**
+	 * The primary key for this row
+	 */
+	this.Id = '';
+
+	/**
+	 * The file that the resource is located in
+	 */
+	this.FileItemId = 0;
+
+	/**
+	 * The foreign key to the source directory
+	 */
+	this.SourceId = 0;
+
+	/**
 	 * Key is a unique string used to uniquely identify
 	 * this resource; the function name or a concatenation
 	 * of the function name and the object it's a part
@@ -39,14 +54,20 @@ var Resource = function() {
 	this.Key = '';
 
 	/**
-	 * The name of the function.
+	 * The identifier lexeme of this resource.
+	 * (just the function/property name)
 	 */
-	this.FunctionName = '';
+	this.Identifier = '';
 
 	/**
-	 * The name of the object.
+	 * The function signature
 	 */
-	this.ObjectName = '';
+	this.Signature = '';
+
+	/**
+	 * The comment block
+	 */
+	this.Comment = '';
 
 	/**
 	 * The line number (1-based) where this resource
@@ -59,7 +80,7 @@ var Resource = function() {
 	 * was declared in. The column number of 0 is the
 	 * start of a line.
 	 */
-	this.ColumnPosition  = 0;
+	this.ColumnPosition = 0;
 };
 
 module.exports = Resource;

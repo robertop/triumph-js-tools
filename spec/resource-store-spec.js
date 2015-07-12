@@ -58,9 +58,12 @@ describe('store tests', function() {
 
 	beforeEach(function(done) {
 		resource = new Resource();
+		resource.FileItemId = 300;
+		resource.SourceId = 24;
 		resource.Key = 'query.searchbyname';
-		resource.FunctionName = 'searchByName';
-		resource.ObjectName = 'Query';
+		resource.Identifier = 'searchByName';
+		resource.Signature = 'searchByName(name)';
+		resource.Comment = 'searches by name';
 		resource.LineNumber = 49;
 		resource.ColumnPosition =  23;
 
@@ -70,9 +73,12 @@ describe('store tests', function() {
 			var create =
 				'CREATE TABLE resources(' +
 				'  id INTEGER NOT NULL PRIMARY KEY, ' +
+				'  file_item_id INTEGER NOT NULL, ' +
+				'  source_id INTEGER NOT NULL, ' +
 				'  key TEXT NOT NULL, ' +
-				'  function_name TEXT NOT NULL, ' +
-				'  object_name TEXT NOT NULL, ' +
+				'  identifier TEXT NOT NULL, ' +
+				'  signature TEXT NOT NULL, ' +
+				'  comment TEXT NOT NULL, ' +
 				'  line_number INTEGER NOT NULL, ' +
 				'  column_position INTEGER NOT NULL ' +
 				')';
@@ -101,9 +107,12 @@ describe('store tests', function() {
 
 				expect(row).toBeDefined();
 				expect(row.id).toBeDefined();
+				expect(row.file_item_id).toEqual(resource.FileItemId);
+				expect(row.source_id).toEqual(resource.SourceId);
 				expect(row.key).toEqual(resource.Key);
-				expect(row.function_name).toEqual(resource.FunctionName);
-				expect(row.object_name).toEqual(resource.ObjectName);
+				expect(row.identifier).toEqual(resource.Identifier);
+				expect(row.signature).toEqual(resource.Signature);
+				expect(row.comment).toEqual(resource.Comment);
 				expect(row.line_number).toEqual(resource.LineNumber);
 				expect(row.column_position).toEqual(resource.ColumnPosition);
 			});

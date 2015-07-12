@@ -50,13 +50,16 @@ function ResourceStore() {
 		if (!this.stmt) {
 			this.stmt = this.db.prepare(
 				'INSERT INTO resources ' +
-				'(key, function_name, object_name, line_number, column_position) ' +
+				'(file_item_id, source_id, key, identifier, signature, ' +
+				'comment, line_number, column_position) ' +
 				'VALUES ' +
-				'(?, ?, ?, ?, ?)'
+				'(?, ?, ?, ?, ?, ?, ?, ?)'
 			);
 		}
 		this.stmt.run(
-			resource.Key, resource.FunctionName, resource.ObjectName,
+			resource.FileItemId, resource.SourceId, resource.Key,
+			resource.Identifier, resource.Signature,
+			resource.Comment,
 			resource.LineNumber, resource.ColumnPosition
 		);
 	};
