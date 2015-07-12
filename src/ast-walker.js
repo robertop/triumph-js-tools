@@ -133,7 +133,9 @@ var AstWalker = function() {
 	this.walkObjectExpression = function(node) {
 		for (var j = 0; j < node.properties.length; j++) {
 			var prop = node.properties[j];
-			if (prop.value && prop.value.type == 'FunctionExpression' && prop.key.type === 'Identifier') {
+			if (prop.value &&
+				prop.value.type == 'FunctionExpression' &&
+				prop.key.type === 'Identifier') {
 				var key = prop.key.name;
 				if (this.resource.ObjectName) {
 					key = this.resource.ObjectName + '.' + prop.key.name;
@@ -164,10 +166,12 @@ var AstWalker = function() {
 	this.walkSwitchStatement = function(node) {
 		this.walkNode(node.discriminant);
 		if (node.cases) {
-			for (var i = 0; i < node.cases.length; i++) {
+			var i;
+			var j;
+			for (i = 0; i < node.cases.length; i++) {
 				this.walkNode(node.cases[i]);
 				if (node.cases[i].consequent) {
-					for (var  j = 0; j < node.cases[i].consequent.length; j++) {
+					for (j = 0; j < node.cases[i].consequent.length; j++) {
 						this.walkNode(node.cases[i].consequent[j]);
 					}
 				}
@@ -258,8 +262,7 @@ var AstWalker = function() {
 			this.resource.ColumnPosition = node.left.property.loc.start.column;
 
 			this.store.insert(this.resource);
-		}
-		else {
+		} else {
 			this.walkNode(node.right);
 		}
 	};
@@ -273,8 +276,8 @@ var AstWalker = function() {
 				this.resource.ObjectName = '';
 				this.walkNode(node.arguments[i]);
 			}
-		}	
-	}
+		}
+	};
 };
 
 module.exports = AstWalker;
