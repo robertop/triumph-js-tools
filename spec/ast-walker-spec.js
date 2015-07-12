@@ -601,7 +601,7 @@ describe('ast walker tests', function() {
 		expect(resource).toEqual(actualResource);
 	});
 
-	it('should capture function defined inside an enclosing anonymous function', function() {
+	it('should capture inside an anonymous function', function() {
 		node.body = [{
 			'type': 'ExpressionStatement',
 			'expression': {
@@ -611,61 +611,62 @@ describe('ast walker tests', function() {
 					'name': 'define'
 				},
 				'arguments': [
-				{
-					'type': 'ArrayExpression',
-					'elements': []
-				},
-				{
-					'type': 'FunctionExpression',
-					'id': null,
-					'params': [{
-						'type': 'Identifier',
-						'name': 'item'
-					}],
-					'defaults': [],
-					'body': {
-						'type': 'BlockStatement',
-						'body': [{
-							'type': 'ExpressionStatement',
-							'expression': {
-								'type': 'AssignmentExpression',
-								'operator': '=',
-								'left': {
-									'type': 'MemberExpression',
-									'computed': false,
-									'object': {
-										'type': 'Identifier',
-										'name': 'item'
-									},
-									'property': {
-										'type': 'Identifier',
-										'name': 'extractName',
-										'loc': {
-											'start': {
-												'line': 2,
-												'column': 4
+					{
+						'type': 'ArrayExpression',
+						'elements': []
+					},
+					{
+						'type': 'FunctionExpression',
+						'id': null,
+						'params': [{
+							'type': 'Identifier',
+							'name': 'item'
+						}],
+						'defaults': [],
+						'body': {
+							'type': 'BlockStatement',
+							'body': [{
+								'type': 'ExpressionStatement',
+								'expression': {
+									'type': 'AssignmentExpression',
+									'operator': '=',
+									'left': {
+										'type': 'MemberExpression',
+										'computed': false,
+										'object': {
+											'type': 'Identifier',
+											'name': 'item'
+										},
+										'property': {
+											'type': 'Identifier',
+											'name': 'extractName',
+											'loc': {
+												'start': {
+													'line': 2,
+													'column': 4
+												}
 											}
 										}
-									}
-								},
-								'right': {
-									'type': 'FunctionExpression',
-									'id': null,
-									'params': [],
-									'defaults': [],
-									'body': {
-										'type': 'BlockStatement',
-										'body': []
 									},
-									'generator': false,
-									'expression': false
+									'right': {
+										'type': 'FunctionExpression',
+										'id': null,
+										'params': [],
+										'defaults': [],
+										'body': {
+											'type': 'BlockStatement',
+											'body': []
+										},
+										'generator': false,
+										'expression': false
+									}
 								}
-							}
-						}]
-					},
-					'generator': false,
-					'expression': false
-				}]
+							}]
+						},
+						'generator': false,
+						'expression': false
+					}
+				]
 			}
 		}];
 
@@ -754,21 +755,21 @@ describe('ast walker tests', function() {
 	it('should recurse function parameters', function() {
 		node.body = [{
 			'type': 'ExpressionStatement',
-				'expression': {
-					'type': 'CallExpression',
-					'callee': {
-						'type': 'MemberExpression',
-						'computed': false,
-						'object': {
-							'type': 'Identifier',
-							'name': 'jQuery'
-						},
-						'property': {
-							'type': 'Identifier',
-							'name': 'extend'
-						}
+			'expression': {
+				'type': 'CallExpression',
+				'callee': {
+					'type': 'MemberExpression',
+					'computed': false,
+					'object': {
+						'type': 'Identifier',
+						'name': 'jQuery'
 					},
-					'arguments': [{
+					'property': {
+						'type': 'Identifier',
+						'name': 'extend'
+					}
+				},
+				'arguments': [{
 					'type': 'ObjectExpression',
 					'properties': [{
 						'type': 'Property',
