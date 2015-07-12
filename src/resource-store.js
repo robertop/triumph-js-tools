@@ -62,7 +62,7 @@ function ResourceStore() {
 	};
 }
 
-var StorePrototype = require('./store');
-ResourceStore.prototype = StorePrototype;
+var Store = require('./store');
+ResourceStore.prototype = Store;
 
 module.exports = ResourceStore;
