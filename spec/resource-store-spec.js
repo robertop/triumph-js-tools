@@ -23,7 +23,7 @@
  * @license    http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
-var Store = require('../src/store.js');
+var ResourceStore = require('../src/resource-store.js');
 var Resource = require('../src/resource.js');
 var sqlite3 = require('sqlite3').verbose();
 
@@ -37,7 +37,7 @@ describe('store tests', function() {
 
 	/**
 	 * the object under test
-	 * @var Store
+	 * @var ResourceStore
 	 */
 	var store;
 
@@ -64,7 +64,7 @@ describe('store tests', function() {
 		resource.LineNumber = 49;
 		resource.ColumnPosition =  23;
 
-		store = new Store();
+		store = new ResourceStore();
 		db = new sqlite3.Database(':memory:');
 		db.serialize(function() {
 			var create =

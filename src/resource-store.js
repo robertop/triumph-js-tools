@@ -26,56 +26,43 @@
 var sqlite3 = require('sqlite3').verbose();
 
 /**
- * The Store object is an object that wraps a SQLite3 prepared statement. This
- * object is not really meant to be used by itself, it is meant to be added
- * to an object's prorotype chain.
- * This protype will need 2 properties to be defined:
- *
- * db - the SQLite3 db connection handle.
- * stmt - the SQLite3 statement handle.
+ * The Store object takes care of persisting Resource objects into
+ * a SQLite database.
  */
-var Store = {
+function ResourceStore() {
 
 	/**
-	 * Intiialize the store with a sqlite database from
-	 * a file system file.
-	 *
-	 * @param sqliteFileName the full path to a SQLite file; if the
-	 *        the file does not exist then it will be created.
-	 * @return sqlite3.Database so that the execution mode can be
-	 *         set.
+	 * The opened connection handle.
 	 */
-	initFile: function(sqliteFileName) {
-		var db = new sqlite3.Database(sqliteFileName);
-		this.init(db);
-		return db;
-	},
+	this.db = null;
 
 	/**
-	 * Initialize the store with a previously opened SQLite connection
-	 * handle.
-	 *
-	 * @param db an opened SQLite database handle
+	 * The prepared statement used for INSERTs
 	 */
-	init: function(db) {
-		this.db = db;
-	},
+	this.stmt = null;
 
-	finalize: function() {
-		if (this.stmt) {
-			this.stmt.finalize();
-			this.stmt = null;
+	/**
+	 * Persists the given resource into the store.
+	 *
+	 * @param resource the resource object to save
+	 */
+	this.insert = function(resource) {
+		if (!this.stmt) {
+			this.stmt = this.db.prepare(
+				'INSERT INTO resources ' +
+				'(key, function_name, object_name, line_number, column_position) ' +
+				'VALUES ' +
+				'(?, ?, ?, ?, ?)'
+			);
 		}
-	},
+		this.stmt.run(
+			resource.Key, resource.FunctionName, resource.ObjectName,
+			resource.LineNumber, resource.ColumnPosition
+		);
+	};
+}
 
-	close: function(callback) {
-		if (this.stmt) {
-			this.stmt.finalize();
-		}
-		if (this.db) {
-			this.db.close(callback);
-		}
-	}
-};
+var StorePrototype = require('./store');
+ResourceStore.prototype = StorePrototype;
 
-module.exports = Store;
+module.exports = ResourceStore;

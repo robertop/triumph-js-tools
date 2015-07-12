@@ -24,7 +24,7 @@
  */
 
 var AstWalker = require('./ast-walker.js');
-var Store = require('./store.js');
+var ResourceStore = require('./resource-store.js');
 var esprima = require('esprima');
 var fs = require('fs');
 
@@ -75,7 +75,7 @@ if (outputExists) {
 	}
 }
 
-var store = new Store();
+var store = new ResourceStore();
 var db = store.initFile(outputFile);
 var astWalker = new AstWalker();
 astWalker.init(store);
