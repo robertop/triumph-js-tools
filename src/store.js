@@ -24,6 +24,7 @@
  */
 
 var sqlite3 = require('sqlite3').verbose();
+var Q = require('q');
 
 /**
  * The Store object is an object that wraps a SQLite3 prepared statement. This
@@ -61,20 +62,35 @@ var Store = {
 		this.db = db;
 	},
 
+	/**
+	 * @return Q a promise that resolves when the statement has been finalized
+	 */
 	finalize: function() {
 		if (this.stmt) {
-			this.stmt.finalize();
-			this.stmt = null;
+			var store = this;
+			var promise = Q.ninvoke(this.stmt, 'finalize');
+			return promise.then(function() {
+				store.stmt = null;
+				return true;
+			});
 		}
+		return Q.fcall(function() {
+			return true;
+		});
 	},
 
-	close: function(callback) {
-		if (this.stmt) {
-			this.stmt.finalize();
-		}
+	/**
+	 * @return Q a promise that resolves when the connection has been closed
+	 */
+	close: function() {
+		var promise = this.finalize();
 		if (this.db) {
-			this.db.close(callback);
+			var store = this;
+			promise.then(function() {
+				return Q.ninvoke(store.db, 'close');
+			});
 		}
+		return promise;
 	}
 };
 

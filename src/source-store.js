@@ -25,6 +25,7 @@
 
 var sqlite3 = require('sqlite3').verbose();
 var Source = require('./source');
+var Q = require('q');
 
 /**
  * The Source Store object takes care of persisting source objects into
@@ -39,29 +40,23 @@ var SourceStore = function() {
 	 *
 	 * @param directory string directory to fetch/insert.Note that comparison
 	 *        of directories is case-sensitive.
-	 * @param callback will be called after the DB operations; the callback
+	 * @return Q promise that resolves after the DB operations; the promise
 	 *        will be given the source object.
-	 *        The callback signature should be:
-	 *
-	 *        function(err, source)
-	 *
-	 *        Where err is an error (if any) and source is the
-	 *        Source object that contains the newly created source ID.
+	 *        The Source object that contains the newly created source ID.
 	 */
 	this.fetchOrInsert = function(directory, callback) {
 		var sql = 'SELECT source_id, directory FROM sources WHERE directory = ?';
 		var sourceStore = this;
 		var source = new Source();
-		this.db.get(sql, [directory], function(err, row) {
-			if (!err && !row) {
+		var promise = Q.ninvoke(this.db, 'get', sql, [directory]);
+		return promise.then(function(row) {
+			if (!row) {
 				source.Directory = directory;
-				sourceStore.insert(source, callback);
-			} else if (!err) {
+				return sourceStore.insert(source);
+			} else {
 				source.Directory = row.directory;
 				source.SourceId = row.source_id;
-				callback(null, source);
-			} else {
-				callback(err, row);
+				return source;
 			}
 		});
 	};
@@ -70,16 +65,11 @@ var SourceStore = function() {
 	 * Persists the given Source into the store.
 	 *
 	 * @param source the Source object to save
-	 * @param callback the function that gets called after the insert
-	 *        succeeds. It will also be called if the INSERT fails.
-	 *        The callback signature should be:
-	 *
-	 *        function(err, source)
-	 *
-	 *        Where err is an error (if any) and source is the
-	 *        Source object that contains the newly created source ID.
+	 * @return Q promise that gets resolved after the insert
+	 *        succeeds.The resolved Source object contains the
+	  *       newly created source ID.
 	 */
-	this.insert = function(source, callback) {
+	this.insert = function(source) {
 		if (!this.stmt) {
 			this.stmt = this.db.prepare(
 				'INSERT INTO sources ' +
@@ -88,17 +78,12 @@ var SourceStore = function() {
 				'(?)'
 			);
 		}
-		this.stmt.run(
-			source.Directory,
-			function(err, row) {
-				if (!err) {
-					source.SourceId = this.lastID;
-					callback(null, source);
-				} else {
-					callback(err, row);
-				}
-			}
-		);
+		var store = this;
+		return Q.ninvoke(this.stmt, 'run', source.Directory)
+			.then(function(row) {
+				source.SourceId = store.stmt.lastID;
+				return source;
+			});
 	};
 };
 

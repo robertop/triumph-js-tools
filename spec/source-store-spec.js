@@ -79,33 +79,34 @@ describe('source store tests', function() {
 
 	it('should save a source', function(done) {
 		db.serialize(function() {
-			store.fetchOrInsert(source.Directory, function(errSource, newSource) {
-				store.finalize();
+			var promise = store.fetchOrInsert(source.Directory);
+			promise.catch(function(err) {
+				expect(err).toBeNull();
+			})
+			.then(function(newSource) {
+				store.finalize().then(function() {
 
-				// make sure that the param given in the callback is as expected
-				expect(errSource).toBeNull();
-				expect(newSource).toBeDefined();
-				expect(newSource.SourceId).toBeDefined();
-				expect(newSource.Directory).toEqual(source.Directory);
+					// make sure that the param given in the callback is as expected
+					expect(newSource).toBeDefined();
+					expect(newSource.SourceId).toBeDefined();
+					expect(newSource.Directory).toEqual(source.Directory);
 
-				db.get('SELECT COUNT(*) as cnt FROM sources', [], function(err, row) {
-					expect(err).toBeNull();
-					expect(row).toBeDefined();
-					expect(row.cnt).toEqual(1);
-				});
+					var sql = 'SELECT COUNT(*) as cnt FROM sources';
+					db.get(sql, [], function(err, row) {
+						expect(err).toBeNull();
+						expect(row).toBeDefined();
+						expect(row.cnt).toEqual(1);
+					});
 
-				// make sure that there is a new row
-				db.get('SELECT * FROM sources', [], function(err, row) {
-					expect(err).toBeNull();
+					// make sure that there is a new row
+					db.get('SELECT * FROM sources', [], function(err, row) {
+						expect(err).toBeNull();
 
-					expect(row).toBeDefined();
-					expect(row.source_id).toBeDefined();
-					expect(row.directory).toEqual(source.Directory);
-				});
-
-				db.close(function(err) {
-					expect(err).toBeNull();
-					done();
+						expect(row).toBeDefined();
+						expect(row.source_id).toBeDefined();
+						expect(row.directory).toEqual(source.Directory);
+					});
+					store.close().then(done);
 				});
 			});
 		});
@@ -118,25 +119,31 @@ describe('source store tests', function() {
 		db.run('INSERT INTO sources(source_id, directory) VALUES(?, ?)',
 			[source.SourceId, source.Directory],
 			function() {
-				store.fetchOrInsert(source.Directory, function(errSource, newSource) {
-					store.finalize();
+				var promise = store.fetchOrInsert(source.Directory);
+				promise.catch(function(err) {
+					expect(err).toBeNull();
+				})
+				.then(function(newSource) {
+					store.finalize().then(function() {
 
-					// make sure that the param given in the callback is as expected
-					expect(errSource).toBeNull();
-					expect(newSource).toBeDefined();
-					expect(newSource.SourceId).toEqual(source.SourceId);
-					expect(newSource.Directory).toEqual(source.Directory);
+						// make sure that the param given in the callback is as
+						// expected
+						expect(newSource).toBeDefined();
+						expect(newSource.SourceId).toEqual(source.SourceId);
+						expect(newSource.Directory).toEqual(source.Directory);
 
-					// make sure that there is only 1 row
-					db.get('SELECT COUNT(*) as cnt FROM sources', [], function(err, row) {
+						// make sure that there is only 1 row
+						var sql = 'SELECT COUNT(*) as cnt FROM sources';
+						db.get(sql, [], function(err, row) {
+							expect(err).toBeNull();
+							expect(row).toBeDefined();
+							expect(row.cnt).toEqual(1);
+						});
+
+						store.close().then(done);
+					})
+					.catch(function(err) {
 						expect(err).toBeNull();
-						expect(row).toBeDefined();
-						expect(row.cnt).toEqual(1);
-					});
-
-					db.close(function(err) {
-						expect(err).toBeNull();
-						done();
 					});
 				});
 			}
