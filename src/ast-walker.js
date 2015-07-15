@@ -44,7 +44,7 @@ var AstWalker = function() {
 	/**
 	 * The object used to store resources into a SQLite db
 	 *
-	 * @var Store
+	 * @var ResourceStore
      */
 	this.store = null;
 
@@ -60,7 +60,7 @@ var AstWalker = function() {
 	 * Initialize the store that will be used for persisting the
 	 * parsed resoures.
 	 *
-	 * @param store Store
+	 * @param store ResourceStore
 	 */
 	this.init = function(store) {
 		this.store = store;

@@ -25,8 +25,16 @@
 
 var AstWalker = require('./ast-walker.js');
 var ResourceStore = require('./resource-store.js');
+var FileItemStore = require('./file-item-store.js');
+var SourceStore = require('./source-store.js');
+var FileItem = require('./file-item.js');
+var Source = require('./source.js');
+var App = require('./app.js');
+
 var esprima = require('esprima');
 var fs = require('fs');
+var path = require('path');
+var Q = require('q');
 
 var opt = require('node-getopt').create([
 	['f', 'file=ARG', 'File to parse'],
@@ -74,13 +82,27 @@ if (outputExists) {
 		process.exit(1);
 	}
 }
+var resourceStore = new ResourceStore();
+var fileItemStore = new FileItemStore();
+var sourceStore = new SourceStore();
+var astWalker =  new AstWalker();
+var app = new App(sourceStore, fileItemStore, resourceStore, astWalker);
 
-var store = new ResourceStore();
-var db = store.initFile(outputFile);
-var astWalker = new AstWalker();
-astWalker.init(store);
+var db = resourceStore.initFile(outputFile);
+fileItemStore.init(db);
+sourceStore.init(db);
+astWalker.init(resourceStore);
 
-function createTables(callback) {
+/**
+ * @return Q promise that resolves when the tables have been created
+ *         in sqlite
+ */
+function createTables(ouputExists) {
+	if (outputExists) {
+		return Q.fcall(function() {
+			return true;
+		});
+	}
 	var create =
 		'CREATE TABLE resources(' +
 		'  id INTEGER NOT NULL PRIMARY KEY, ' +
@@ -92,58 +114,45 @@ function createTables(callback) {
 		'  comment TEXT NOT NULL, ' +
 		'  line_number INTEGER NOT NULL, ' +
 		'  column_position INTEGER NOT NULL ' +
+		');' +
+		'CREATE TABLE file_items(' +
+		'  file_item_id INTEGER NOT NULL PRIMARY KEY, ' +
+		'  source_id INTEGER NOT NULL, ' +
+		'  full_path TEXT, ' +
+		'  name TEXT NOT NULL COLLATE NOCASE, ' +
+		'  last_modified DATETIME NOT NULL, ' +
+		'  is_parsed INTEGER NOT NULL, ' +
+		'  is_new INTEGER NOT NULL ' +
+		');' +
+		'CREATE TABLE sources(' +
+		'  source_id INTEGER NOT NULL PRIMARY KEY, ' +
+		'  directory TEXT NOT NULL ' +
 		')';
-	db.run(create, [], callback);
-}
-
-var storeAst = function(fileName) {
-	try {
-		var contents = fs.readFileSync(fileName);
-		console.log('starting with ' + fileName);
-		var ast = esprima.parse(contents, {loc: true});
-		astWalker.walkNode(ast);
-	} catch (e) {
-		var msg = 'exception with file ' + fileName + ':' +
-			e.fileName +  ' on line ' + e.line_number;
-		console.log(msg);
-		console.log(e);
-		console.log(e.stack);
-	}
-};
-
-function parseAndStoreDir(dir) {
-	var files = fs.readdirSync(dir);
-	for (var i = 0; i < files.length; i++) {
-		var fullPath = dir + '/' + files[i];
-		if (files[i].substr(files[i].length - 3, 3) == '.js') {
-			storeAst(fullPath);
-		}
-		if (fs.statSync(fullPath).isDirectory()) {
-			parseAndStoreDir(fullPath);
-		}
-	}
-}
-
-if (sourceFile && sourceExists) {
-	db.serialize(function() {
-		if (!outputExists) {
-			createTables(function() {
-				storeAst(sourceFile);
-			});
-		} else {
-			storeAst(sourceFile);
-		}
-		store.finalize();
+	var deferred = Q.defer();
+	db.exec(create, function() {
+		deferred.resolve(true);
 	});
-} else if (sourceDir && sourceDirExists) {
-	db.serialize(function() {
-		if (!outputExists) {
-			createTables(function() {
-				parseAndStoreDir(sourceDir);
-			});
-		} else {
-			parseAndStoreDir(sourceDir);
-		}
-		store.finalize();
-	});
+	return deferred.promise;
 }
+
+db.serialize(function() {
+	var promise = createTables(outputExists);
+	if (sourceFile && sourceExists) {
+		var directory = path.dirname(sourceFile);
+		promise.then(function() {
+			return app.begin(directory);
+		}).then(function() {
+			return app.iterateFile(sourceFile);
+		}).then(function() {
+			store.finalize();
+		});
+	} else if (sourceDir && sourceDirExists) {
+		promise.then(function() {
+			return app.begin(sourceDir);
+		}).then(function() {
+			return app.iterateDir(sourceDir);
+		}).then(function() {
+			store.finalize();
+		});
+	}
+});

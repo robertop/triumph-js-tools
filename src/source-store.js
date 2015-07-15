@@ -44,7 +44,7 @@ var SourceStore = function() {
 	 *        will be given the source object.
 	 *        The Source object that contains the newly created source ID.
 	 */
-	this.fetchOrInsert = function(directory, callback) {
+	this.fetchOrInsert = function(directory) {
 		var sql = 'SELECT source_id, directory FROM sources WHERE directory = ?';
 		var sourceStore = this;
 		var source = new Source();
