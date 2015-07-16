@@ -25,6 +25,7 @@
 
 var ResourceStore = require('../src/resource-store.js');
 var Resource = require('../src/resource.js');
+var createTablesSql = require('../src/create-sql.js');
 var sqlite3 = require('sqlite3').verbose();
 var fs = require('fs');
 
@@ -60,7 +61,7 @@ describe('store tests', function() {
 	/**
 	 * The SQL that creates tables
 	 */
-	var createSql = fs.readFileSync('resources.sql', {encoding: 'ascii'});
+	var createSql = createTablesSql('resources.sql');
 
 	beforeEach(function(done) {
 		resource = new Resource();

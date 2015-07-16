@@ -25,6 +25,7 @@
 
 var SourceStore = require('../src/source-store.js');
 var Source = require('../src/source.js');
+var createTablesSql = require('../src/create-sql.js');
 var sqlite3 = require('sqlite3').verbose();
 var fs = require('fs');
 
@@ -60,7 +61,7 @@ describe('source store tests', function() {
 	/**
 	 * The SQL that creates tables
 	 */
-	var createSql = fs.readFileSync('resources.sql', {encoding: 'ascii'});
+	var createSql = createTablesSql('resources.sql');
 
 	beforeEach(function(done) {
 		source = new Source();

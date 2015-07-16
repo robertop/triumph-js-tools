@@ -30,6 +30,7 @@ var SourceStore = require('./source-store.js');
 var FileItem = require('./file-item.js');
 var Source = require('./source.js');
 var App = require('./app.js');
+var createTablesSql = require('./create-sql.js');
 
 var esprima = require('esprima');
 var fs = require('fs');
@@ -103,7 +104,7 @@ function createTables(ouputExists) {
 			return true;
 		});
 	}
-	var createSql = fs.readFileSync('resources.sql', {encoding: 'ascii'});
+	var createSql = createTablesSql('resources.sql');
 	var deferred = Q.defer();
 	db.exec(createSql, function() {
 		deferred.resolve(true);

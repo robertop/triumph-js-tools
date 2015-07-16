@@ -25,6 +25,7 @@
 
 var FileItemStore = require('../src/file-item-store.js');
 var FileItem = require('../src/file-item.js');
+var createTablesSql = require('../src/create-sql.js');
 var sqlite3 = require('sqlite3').verbose();
 var fs = require('fs');
 
@@ -60,7 +61,7 @@ describe('file item store tests', function() {
 	/**
 	 * The SQL that creates tables
 	 */
-	var createSql = fs.readFileSync('resources.sql', {encoding: 'ascii'});
+	var createSql = createTablesSql('resources.sql');
 
 	beforeEach(function(done) {
 		fileItem = new FileItem();
