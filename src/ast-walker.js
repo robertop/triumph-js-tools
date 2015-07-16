@@ -64,6 +64,29 @@ var AstWalker = function() {
 	this.sourceId;
 
 	/**
+	 * unparse function parameters into a function signature
+	 *
+	 * @param name string the function name
+	 * @param array of parameters
+	 * @return string a function signature; example "function doWork(arg, argTwo)"
+	 */
+	var makeSignature = function(name, params) {
+		var sig = 'function ' + name + '(';
+		if (params && params.length) {
+			for (var i = 0; i < params.length; i++) {
+				if (params[i].type === 'Identifier') {
+					sig += params[i].name;
+					if (i < (params.length - 1)) {
+						sig += ', ';
+					}
+				}
+			}
+		}
+		sig += ')';
+		return sig;
+	};
+
+	/**
 	 * Initialize the store that will be used for persisting the
 	 * parsed resoures.
 	 *
@@ -113,7 +136,7 @@ var AstWalker = function() {
 			var resource = new Resource();
 			resource.Key  = node.id.name;
 			resource.Identifier = node.id.name;
-			resource.Signature = '';
+			resource.Signature = makeSignature(node.id.name, node.params);
 			resource.Comment = '';
 			resource.LineNumber =  node.loc.start.line;
 			resource.ColumnPosition = node.loc.start.column;
@@ -164,7 +187,9 @@ var AstWalker = function() {
 				var resource = new Resource();
 				resource.Key =  key;
 				resource.Identifier = prop.key.name;
-				resource.Signature = '';
+				resource.Signature = makeSignature(
+					prop.key.name, prop.value.params
+				);
 				resource.Comment = '';
 				resource.LineNumber = prop.key.loc.start.line;
 				resource.ColumnPosition = prop.key.loc.start.column;
@@ -293,7 +318,7 @@ var AstWalker = function() {
 			functionName = node.left.property.name;
 			resource.Key =  objectName + '.' + functionName;
 			resource.Identifier = functionName;
-			resource.Signature = '';
+			resource.Signature = makeSignature(functionName, node.right.params);
 			resource.Comment = '';
 			resource.LineNumber = node.left.property.loc.start.line;
 			resource.ColumnPosition = node.left.property.loc.start.column;
@@ -305,7 +330,7 @@ var AstWalker = function() {
 			functionName = node.left.property.name;
 			resource.Key =  functionName;
 			resource.Identifier = functionName;
-			resource.Signature = '';
+			resource.Signature = makeSignature(functionName, node.right.params);
 			resource.Comment = '';
 			resource.LineNumber = node.left.property.loc.start.line;
 			resource.ColumnPosition = node.left.property.loc.start.column;

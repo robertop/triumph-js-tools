@@ -74,7 +74,7 @@ describe('ast walker tests', function() {
 		resource.SourceId = 24;
 		resource.Key = 'extractName';
 		resource.Identifier = 'extractName';
-		resource.Signature = '';
+		resource.Signature = 'function extractName()';
 		resource.Comment = '';
 		resource.LineNumber = 30;
 		resource.ColumnPosition = 4;
@@ -824,7 +824,7 @@ describe('ast walker tests', function() {
 
 	});
 
-	it ('should iterate function assigned to this', function() {
+	it('should iterate function assigned to this', function() {
 		node.body = [{
 			'type': 'FunctionDeclaration',
 			'id': {
@@ -896,6 +896,7 @@ describe('ast walker tests', function() {
 		resource.Identifier = 'Test';
 		resource.LineNumber = 1;
 		resource.ColumnPosition = 2;
+		resource.Signature = 'function Test()';
 		var actualResource = store.insert.calls.argsFor(0)[0];
 		expect(resource).toEqual(actualResource);
 
@@ -903,7 +904,54 @@ describe('ast walker tests', function() {
 		resource.Identifier = 'extractName';
 		resource.LineNumber = 2;
 		resource.ColumnPosition = 4;
+		resource.Signature = 'function extractName()';
 		actualResource = store.insert.calls.argsFor(1)[0];
+		expect(resource).toEqual(actualResource);
+	});
+
+	it('should capture function signature parameters', function() {
+		node.body = [{
+			'type': 'FunctionDeclaration',
+			'id': {
+				'type': 'Identifier',
+				'name': 'extractName'
+			},
+			'loc': {
+				'start': {
+					'line': 2,
+					'column': 4
+				}
+			},
+			'params': [
+				{
+				'type': 'Identifier',
+				'name': 'fullName'
+				},
+				{
+				'type': 'Identifier',
+				'name': 'separators'
+				}
+			],
+			'defaults': [],
+			'body': {
+				'type': 'BlockStatement',
+				'body': []
+			},
+			'generator': false,
+			'expression': false
+		}];
+
+		resource.Key = 'extractName';
+		resource.Identifier = 'extractName';
+		resource.LineNumber = 2;
+		resource.ColumnPosition = 4;
+		resource.Signature = 'function extractName(fullName, separators)';
+
+		walker.walkNode(node);
+
+		expect(store.insert).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
 		expect(resource).toEqual(actualResource);
 	});
 });
