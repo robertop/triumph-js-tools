@@ -94,8 +94,8 @@ function App(sourceStore, fileItemStore, resourceStore) {
 						astWalker.setFileAndSource(newFileItem, source);
 						try {
 							var contents = fs.readFileSync(fullPath);
-							var ast = esprima.parse(contents, {loc: true});
-							astWalker.walkNode(ast);
+							var ast = esprima.parse(contents, {loc: true, comment: true});
+							astWalker.walkNode(ast, ast.comments);
 						} catch (e) {
 							var msg = 'exception with file ' + fullPath + ':' +
 								e.fileName +  ' on line ' + e.line_number;

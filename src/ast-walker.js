@@ -53,7 +53,7 @@ var AstWalker = function() {
 	 *
 	 * @var number
 	 */
-	this.fileItemId;
+	this.fileItemId = 0;
 
 	/**
 	 * the source ID of the current file being parsed; link to
@@ -61,7 +61,7 @@ var AstWalker = function() {
 	 *
 	 * @var number
 	 */
-	this.sourceId;
+	this.sourceId = 0;
 
 	/**
 	 * unparse function parameters into a function signature
@@ -84,6 +84,28 @@ var AstWalker = function() {
 		}
 		sig += ')';
 		return sig;
+	};
+
+	/**
+	 * Find the given function's comment; we will assign a comment to a function
+	 * if a comment ends at the line where the function starts (or 1 line before)
+	 *
+	 * @param functionLineNumber number the line number where the function starts
+	 * @param comments array of comment nodes (see esparse app)
+	 * @return string
+	 */
+	var findComment = function(functionLineNumber, comments) {
+		var comment = '';
+		if (comments && comments.length) {
+			for (var i = 0; i < comments.length; i++) {
+				if (comments[i].loc.end.line === functionLineNumber ||
+					comments[i].loc.end.line === (functionLineNumber - 1)) {
+					comment = comments[i].value;
+					break;
+				}
+			}
+		}
+		return comment;
 	};
 
 	/**
@@ -111,7 +133,7 @@ var AstWalker = function() {
 	 * Walk down a node.  The appropriate 'walkXXX' function
 	 * is called depending on the node type.
 	 */
-	this.walkNode = function(node) {
+	this.walkNode = function(node, comments) {
 		if (!node || !node.type) {
 			return;
 		}
@@ -119,17 +141,17 @@ var AstWalker = function() {
 		// the node type with the 'walk' prefix
 		var functionName = 'walk' + node.type;
 		if (this[functionName] && functionName != 'walkNode') {
-			this[functionName].call(this, node);
+			this[functionName].call(this, node, comments);
 		}
 	};
 
-	this.walkProgram = function(node) {
+	this.walkProgram = function(node, comments) {
 		for (var i = 0; i < node.body.length; i++) {
-			this.walkNode(node.body[i]);
+			this.walkNode(node.body[i], comments);
 		}
 	};
 
-	this.walkFunctionDeclaration = function(node) {
+	this.walkFunctionDeclaration = function(node, comments) {
 
 		// don't store anynymous functions for now
 		if (node.id !== null && node.id.type === 'Identifier') {
@@ -137,7 +159,7 @@ var AstWalker = function() {
 			resource.Key  = node.id.name;
 			resource.Identifier = node.id.name;
 			resource.Signature = makeSignature(node.id.name, node.params);
-			resource.Comment = '';
+			resource.Comment = findComment(node.loc.start.line, comments);
 			resource.LineNumber =  node.loc.start.line;
 			resource.ColumnPosition = node.loc.start.column;
 			resource.FileItemId = this.fileItemId;
@@ -145,36 +167,36 @@ var AstWalker = function() {
 
 			this.store.insert(resource);
 		}
-		this.walkNode(node.body);
+		this.walkNode(node.body, comments);
 	};
 
-	this.walkBlockStatement = function(node) {
+	this.walkBlockStatement = function(node, comments) {
 		for (var i = 0; i < node.body.length; i++) {
-			this.walkNode(node.body[i]);
+			this.walkNode(node.body[i], comments);
 		}
 	};
 
-	this.walkFunctionExpression = function(node) {
+	this.walkFunctionExpression = function(node, comments) {
 		if (node.body) {
-			this.walkNode(node.body);
+			this.walkNode(node.body, comments);
 		}
 	};
 
-	this.walkVariableDeclaration = function(node) {
+	this.walkVariableDeclaration = function(node, comments) {
 		var decls = node.declarations;
 		for (var i = 0; i < decls.length; i++) {
-			this.walkNode(decls[i]);
+			this.walkNode(decls[i], comments);
 		}
 	};
 
-	this.walkVariableDeclarator = function(node) {
+	this.walkVariableDeclarator = function(node, comments) {
 		if (node.init) {
 			this.ObjectName = node.id.name;
-			this.walkNode(node.init);
+			this.walkNode(node.init, comments);
 		}
 	};
 
-	this.walkObjectExpression = function(node) {
+	this.walkObjectExpression = function(node, comments) {
 		for (var j = 0; j < node.properties.length; j++) {
 			var prop = node.properties[j];
 			if (prop.value &&
@@ -190,7 +212,7 @@ var AstWalker = function() {
 				resource.Signature = makeSignature(
 					prop.key.name, prop.value.params
 				);
-				resource.Comment = '';
+				resource.Comment = findComment(prop.key.loc.start.line, comments);
 				resource.LineNumber = prop.key.loc.start.line;
 				resource.ColumnPosition = prop.key.loc.start.column;
 				resource.FileItemId = this.fileItemId;
@@ -201,100 +223,100 @@ var AstWalker = function() {
 		}
 	};
 
-	this.walkIfStatement = function(node) {
-		this.walkNode(node.test);
-		this.walkNode(node.consequent);
+	this.walkIfStatement = function(node, comments) {
+		this.walkNode(node.test, comments);
+		this.walkNode(node.consequent, comments);
 		if (node.alternate) {
-			this.walkNode(node.alternate);
+			this.walkNode(node.alternate, comments);
 		}
 	};
 
-	this.walkWithStatement = function(node) {
-		this.walkNode(node.object);
-		this.walkNode(node.body);
+	this.walkWithStatement = function(node, comments) {
+		this.walkNode(node.object, comments);
+		this.walkNode(node.body, comments);
 	};
 
-	this.walkSwitchStatement = function(node) {
-		this.walkNode(node.discriminant);
+	this.walkSwitchStatement = function(node, comments) {
+		this.walkNode(node.discriminant, comments);
 		if (node.cases) {
 			var i;
 			var j;
 			for (i = 0; i < node.cases.length; i++) {
-				this.walkNode(node.cases[i]);
+				this.walkNode(node.cases[i], comments);
 				if (node.cases[i].consequent) {
 					for (j = 0; j < node.cases[i].consequent.length; j++) {
-						this.walkNode(node.cases[i].consequent[j]);
+						this.walkNode(node.cases[i].consequent[j], comments);
 					}
 				}
 			}
 		}
 	};
 
-	this.walkTryStatement = function(node) {
-		this.walkNode(node.block);
+	this.walkTryStatement = function(node, comments) {
+		this.walkNode(node.block, comments);
 		if (node.handlers) {
 			for (var i = 0; i < node.handlers.length; i++) {
-				this.walkNode(node.handlers[i]);
+				this.walkNode(node.handlers[i], comments);
 			}
 		}
 		if (node.handler) {
-			this.walkNode(node.handler);
+			this.walkNode(node.handler, comments);
 		}
 		if (node.finalizer) {
-			this.walkNode(node.finalizer);
+			this.walkNode(node.finalizer, comments);
 		}
 	};
 
-	this.walkCatchClause = function(node) {
-		this.walkNode(node.body);
+	this.walkCatchClause = function(node, comments) {
+		this.walkNode(node.body, comments);
 	};
 
-	this.walkWhileStatement = function(node) {
-		this.walkNode(node.test);
-		this.walkNode(node.body);
+	this.walkWhileStatement = function(node, comments) {
+		this.walkNode(node.test, comments);
+		this.walkNode(node.body, comments);
 	};
 
-	this.walkDoWhileStatement = function(node) {
-		this.walkNode(node.test);
-		this.walkNode(node.body);
+	this.walkDoWhileStatement = function(node, comments) {
+		this.walkNode(node.test, comments);
+		this.walkNode(node.body, comments);
 	};
 
-	this.walkForStatement = function(node) {
+	this.walkForStatement = function(node, comments) {
 		if (node.init) {
-			this.walkNode(node.init);
+			this.walkNode(node.init, comments);
 		}
 		if (node.test) {
-			this.walkNode(node.test);
+			this.walkNode(node.test, comments);
 		}
 		if (node.update) {
-			this.walkNode(node.update);
+			this.walkNode(node.update, comments);
 		}
-		this.walkNode(node.body);
+		this.walkNode(node.body, comments);
 	};
 
-	this.walkForInStatement = function(node) {
-		this.walkNode(node.left);
-		this.walkNode(node.right);
-		this.walkNode(node.body);
+	this.walkForInStatement = function(node, comments) {
+		this.walkNode(node.left, comments);
+		this.walkNode(node.right, comments);
+		this.walkNode(node.body, comments);
 	};
 
-	this.walkArrayExpression = function(node) {
+	this.walkArrayExpression = function(node, comments) {
 		if (node.elements) {
 
 			// the WalkObjectExpression uses this
 			this.ObjectName = '';
 			for (var i = 0; i < node.elements.length; i++) {
-				this.walkNode(node.elements[i]);
+				this.walkNode(node.elements[i], comments);
 			}
 		}
 	};
 
-	this.walkExpressionStatement = function(node) {
-		this.walkNode(node.expression);
+	this.walkExpressionStatement = function(node, comments) {
+		this.walkNode(node.expression, comments);
 
 	};
 
-	this.walkAssignmentExpression = function(node) {
+	this.walkAssignmentExpression = function(node, comments) {
 		// not computed because we want '.' expressions
 		// obj.item     NOT  obj[item]
 		var isFunctionAssignment =
@@ -319,7 +341,7 @@ var AstWalker = function() {
 			resource.Key =  objectName + '.' + functionName;
 			resource.Identifier = functionName;
 			resource.Signature = makeSignature(functionName, node.right.params);
-			resource.Comment = '';
+			resource.Comment = findComment(node.left.property.loc.start.line, comments);
 			resource.LineNumber = node.left.property.loc.start.line;
 			resource.ColumnPosition = node.left.property.loc.start.column;
 
@@ -331,24 +353,24 @@ var AstWalker = function() {
 			resource.Key =  functionName;
 			resource.Identifier = functionName;
 			resource.Signature = makeSignature(functionName, node.right.params);
-			resource.Comment = '';
+			resource.Comment = findComment(node.left.property.loc.start.line, comments);
 			resource.LineNumber = node.left.property.loc.start.line;
 			resource.ColumnPosition = node.left.property.loc.start.column;
 
 			this.store.insert(resource);
 		} else {
-			this.walkNode(node.right);
+			this.walkNode(node.right, comments);
 		}
 	};
 
-	this.walkCallExpression = function(node) {
+	this.walkCallExpression = function(node, comments) {
 		for (var i = 0; i < node.arguments.length; i++) {
 			if (node.arguments[i].type === 'FunctionExpression') {
-				this.walkNode(node.arguments[i].body);
+				this.walkNode(node.arguments[i].body, comments);
 			}
 			if (node.arguments[i].type === 'ObjectExpression') {
 				this.ObjectName = '';
-				this.walkNode(node.arguments[i]);
+				this.walkNode(node.arguments[i], comments);
 			}
 		}
 	};

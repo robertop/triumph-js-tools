@@ -144,7 +144,7 @@ describe('ast walker tests', function() {
 			'kind': 'var'
 		}];
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert.calls.count()).toEqual(0);
 	});
@@ -154,7 +154,7 @@ describe('ast walker tests', function() {
 			functionDecl()
 		];
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -204,7 +204,7 @@ describe('ast walker tests', function() {
 		resource.LineNumber = 2;
 		resource.ColumnPosition = 4;
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -234,7 +234,7 @@ describe('ast walker tests', function() {
 			}
 		];
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -252,7 +252,7 @@ describe('ast walker tests', function() {
 			body: functionDecl()
 		}];
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -287,7 +287,7 @@ describe('ast walker tests', function() {
 			}
 		];
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -322,7 +322,7 @@ describe('ast walker tests', function() {
 			]
 		}];
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert.calls.count()).toEqual(2);
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -356,7 +356,7 @@ describe('ast walker tests', function() {
 			}
 		}];
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -387,7 +387,7 @@ describe('ast walker tests', function() {
 			}
 		}];
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -439,7 +439,7 @@ describe('ast walker tests', function() {
 			}
 		}];
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -466,7 +466,7 @@ describe('ast walker tests', function() {
 			}
 		}];
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -542,7 +542,7 @@ describe('ast walker tests', function() {
 		resource.LineNumber = 2;
 		resource.ColumnPosition = 4;
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -601,7 +601,7 @@ describe('ast walker tests', function() {
 		resource.LineNumber = 2;
 		resource.ColumnPosition = 4;
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -683,7 +683,7 @@ describe('ast walker tests', function() {
 		resource.LineNumber = 2;
 		resource.ColumnPosition = 4;
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -749,7 +749,7 @@ describe('ast walker tests', function() {
 		resource.LineNumber = 2;
 		resource.ColumnPosition = 4;
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -815,7 +815,7 @@ describe('ast walker tests', function() {
 		resource.LineNumber = 2;
 		resource.ColumnPosition = 4;
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
@@ -884,7 +884,7 @@ describe('ast walker tests', function() {
 			'expression': false
 		}];
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
 
 		// expect that we store 2 functions; the "constructor" function
 		// and the function attached to the 'this' object
@@ -924,12 +924,12 @@ describe('ast walker tests', function() {
 			},
 			'params': [
 				{
-				'type': 'Identifier',
-				'name': 'fullName'
+					'type': 'Identifier',
+					'name': 'fullName'
 				},
 				{
-				'type': 'Identifier',
-				'name': 'separators'
+					'type': 'Identifier',
+					'name': 'separators'
 				}
 			],
 			'defaults': [],
@@ -947,7 +947,58 @@ describe('ast walker tests', function() {
 		resource.ColumnPosition = 4;
 		resource.Signature = 'function extractName(fullName, separators)';
 
-		walker.walkNode(node);
+		walker.walkNode(node, []);
+
+		expect(store.insert).toHaveBeenCalled();
+		var actualResource = store.insert.calls.argsFor(0)[0];
+
+		expect(resource).toEqual(actualResource);
+	});
+
+	it('should capture function comment header', function() {
+		node.body = [{
+			'type': 'FunctionDeclaration',
+			'id': {
+				'type': 'Identifier',
+				'name': 'extractName'
+			},
+			'loc': {
+				'start': {
+					'line': 5,
+					'column': 4
+				}
+			},
+			'params': [],
+			'defaults': [],
+			'body': {
+				'type': 'BlockStatement',
+				'body': []
+			},
+			'generator': false,
+			'expression': false
+		}];
+		var comments = [{
+			'type': 'Block',
+			'value': '*\\n * A comment\\n ',
+			'loc': {
+				'start': {
+					'line': 2,
+					'column': 0
+				},
+				'end': {
+					'line': 4,
+					'column': 3
+				}
+			}
+		}];
+
+		resource.Key = 'extractName';
+		resource.Identifier = 'extractName';
+		resource.LineNumber = 5;
+		resource.ColumnPosition = 4;
+		resource.Comment = '*\\n * A comment\\n ';
+
+		walker.walkNode(node, comments);
 
 		expect(store.insert).toHaveBeenCalled();
 		var actualResource = store.insert.calls.argsFor(0)[0];
