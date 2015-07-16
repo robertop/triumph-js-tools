@@ -26,6 +26,7 @@
 var ResourceStore = require('../src/resource-store.js');
 var Resource = require('../src/resource.js');
 var sqlite3 = require('sqlite3').verbose();
+var fs = require('fs');
 
 /**
  * Store tests. Note that since the SQLite3 API is async, our
@@ -56,6 +57,11 @@ describe('store tests', function() {
 	 */
 	var resource;
 
+	/**
+	 * The SQL that creates tables
+	 */
+	var createSql = fs.readFileSync('resources.sql', {encoding: 'ascii'});
+
 	beforeEach(function(done) {
 		resource = new Resource();
 		resource.FileItemId = 300;
@@ -70,19 +76,7 @@ describe('store tests', function() {
 		store = new ResourceStore();
 		db = new sqlite3.Database(':memory:');
 		db.serialize(function() {
-			var create =
-				'CREATE TABLE resources(' +
-				'  id INTEGER NOT NULL PRIMARY KEY, ' +
-				'  file_item_id INTEGER NOT NULL, ' +
-				'  source_id INTEGER NOT NULL, ' +
-				'  key TEXT NOT NULL, ' +
-				'  identifier TEXT NOT NULL, ' +
-				'  signature TEXT NOT NULL, ' +
-				'  comment TEXT NOT NULL, ' +
-				'  line_number INTEGER NOT NULL, ' +
-				'  column_position INTEGER NOT NULL ' +
-				')';
-			db.run(create, [], function(err) {
+			db.exec(createSql, function(err) {
 				expect(err).toBeNull();
 
 				store.init(db);

@@ -26,6 +26,7 @@
 var SourceStore = require('../src/source-store.js');
 var Source = require('../src/source.js');
 var sqlite3 = require('sqlite3').verbose();
+var fs = require('fs');
 
 /**
  * Store tests. Note that since the SQLite3 API is async, our
@@ -56,6 +57,11 @@ describe('source store tests', function() {
 	 */
 	var source;
 
+	/**
+	 * The SQL that creates tables
+	 */
+	var createSql = fs.readFileSync('resources.sql', {encoding: 'ascii'});
+
 	beforeEach(function(done) {
 		source = new Source();
 		source.Directory = '/users/home';
@@ -63,12 +69,7 @@ describe('source store tests', function() {
 		store = new SourceStore();
 		db = new sqlite3.Database(':memory:');
 		db.serialize(function() {
-			var create =
-				'CREATE TABLE sources(' +
-				'  source_id INTEGER NOT NULL PRIMARY KEY, ' +
-				'  directory TEXT NOT NULL ' +
-				')';
-			db.run(create, [], function(err) {
+			db.exec(createSql, function(err) {
 				expect(err).toBeNull();
 
 				store.init(db);

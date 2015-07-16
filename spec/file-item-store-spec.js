@@ -26,6 +26,7 @@
 var FileItemStore = require('../src/file-item-store.js');
 var FileItem = require('../src/file-item.js');
 var sqlite3 = require('sqlite3').verbose();
+var fs = require('fs');
 
 /**
  * File item store tests. Note that since the SQLite3 API is async, our
@@ -56,6 +57,11 @@ describe('file item store tests', function() {
 	 */
 	var fileItem;
 
+	/**
+	 * The SQL that creates tables
+	 */
+	var createSql = fs.readFileSync('resources.sql', {encoding: 'ascii'});
+
 	beforeEach(function(done) {
 		fileItem = new FileItem();
 		fileItem.SourceId = 100;
@@ -68,17 +74,7 @@ describe('file item store tests', function() {
 		store = new FileItemStore();
 		db = new sqlite3.Database(':memory:');
 		db.serialize(function() {
-			var create =
-				'CREATE TABLE file_items(' +
-				'  file_item_id INTEGER NOT NULL PRIMARY KEY, ' +
-				'  source_id INTEGER NOT NULL, ' +
-				'  full_path TEXT, ' +
-				'  name TEXT NOT NULL COLLATE NOCASE, ' +
-				'  last_modified DATETIME NOT NULL, ' +
-				'  is_parsed INTEGER NOT NULL, ' +
-				'  is_new INTEGER NOT NULL ' +
-				')';
-			db.run(create, [], function(err) {
+			db.exec(createSql, function(err) {
 				expect(err).toBeNull();
 
 				store.init(db);
