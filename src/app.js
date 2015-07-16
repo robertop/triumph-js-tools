@@ -27,6 +27,7 @@ var DirectoryIterator = require('./directory-iterator');
 var Source = require('./source');
 var FileItem = require('./file-item');
 var Resource = require('./resource');
+var AstWalker = require('./ast-walker');
 var path = require('path');
 var esprima = require('esprima');
 
@@ -35,7 +36,7 @@ var esprima = require('esprima');
  * take care of initializing the SQLite db, iterating through files, parsing
  * code into AST, and storing each artifact in the appropriate table.
  */
-function App(sourceStore, fileItemStore, resourceStore, astWalker) {
+function App(sourceStore, fileItemStore, resourceStore) {
 
 	// the 'store' objects take care of inserting / fetching from
 	// SQLite
@@ -46,14 +47,12 @@ function App(sourceStore, fileItemStore, resourceStore, astWalker) {
 	/**
 	 * The interesting artifacts to be stored
 	 */
-	var fileItem = new FileItem();
 	var source = new Source();
 
 	this.begin = function(directory) {
 		return this.sourceStore.fetchOrInsert(directory)
 			.then(function(sourceObj) {
 				source = sourceObj;
-				fileItem.SourceId = source.SourceId;
 				return true;
 			});
 	};
@@ -79,6 +78,7 @@ function App(sourceStore, fileItemStore, resourceStore, astWalker) {
 	 * @return Q promise that resolves when the file has been parsed
 	 */
 	this.iterateFile = function(fullPath) {
+		var fileItem = new FileItem();
 		fileItem.SourceId = source.SourceId;
 		fileItem.FullPath = fullPath;
 		fileItem.Name = path.basename(fullPath);
@@ -86,23 +86,25 @@ function App(sourceStore, fileItemStore, resourceStore, astWalker) {
 		fileItem.IsParsed = 1;
 		return fileItemStore.fetchOrInsert(fileItem)
 			.then(function(newFileItem) {
-				fileItem.FileItemId = newFileItem.FileItemId;
 				return resourceStore
-					.deleteAllFromFile(newFileItem.FileItemId);
-			}).then(function() {
-				astWalker.setFileAndSource(fileItem, source);
-				try {
-					var contents = fs.readFileSync(fullPath);
-					var ast = esprima.parse(contents, {loc: true});
-					astWalker.walkNode(ast);
-				} catch (e) {
-					var msg = 'exception with file ' + fullPath + ':' +
-						e.fileName +  ' on line ' + e.line_number;
-					console.log(msg);
-					console.log(e);
-					console.log(e.stack);
-				}
-				return true;
+					.deleteAllFromFile(newFileItem.FileItemId)
+					.then(function() {
+						var astWalker = new AstWalker();
+						astWalker.init(resourceStore);
+						astWalker.setFileAndSource(newFileItem, source);
+						try {
+							var contents = fs.readFileSync(fullPath);
+							var ast = esprima.parse(contents, {loc: true});
+							astWalker.walkNode(ast);
+						} catch (e) {
+							var msg = 'exception with file ' + fullPath + ':' +
+								e.fileName +  ' on line ' + e.line_number;
+							console.log(msg);
+							console.log(e);
+							console.log(e.stack);
+						}
+						return true;
+					});
 			});
 	};
 }

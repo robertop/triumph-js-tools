@@ -52,8 +52,6 @@ describe('app tests', function() {
 
 	var dbSpy;
 
-	var astWalker;
-
 	// the artifacts being stored / fetched.
 	var source;
 	var fileItem;
@@ -78,8 +76,6 @@ describe('app tests', function() {
 		source = new Source();
 		fileItem = new FileItem();
 		resource = new Resource();
-
-		astWalker = new AstWalker();
 
 		rootDir = os.tmpdir();
 		if (rootDir.substr(rootDir.length - 1, 1) != '/') {
@@ -124,8 +120,7 @@ describe('app tests', function() {
 			})
 		);
 
-		astWalker.init(resourceStore);
-		app = new App(sourceStore, fileItemStore, resourceStore, astWalker);
+		app = new App(sourceStore, fileItemStore, resourceStore);
 	});
 
 	it ('should store artifacts in directory', function(done) {
