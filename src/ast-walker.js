@@ -49,12 +49,19 @@ var AstWalker = function() {
 	this.store = null;
 
 	/**
-	 * The resource that will be filled in as we walk
-	 * the AST
+	 * the file item ID of the current file being parsed
 	 *
-	 * @var Resource
+	 * @var number
 	 */
-	this.resource = null;
+	this.fileItemId;
+
+	/**
+	 * the source ID of the current file being parsed; link to
+	 * the source directory that the current file being parsed
+	 *
+	 * @var number
+	 */
+	this.sourceId;
 
 	/**
 	 * Initialize the store that will be used for persisting the
@@ -64,7 +71,6 @@ var AstWalker = function() {
 	 */
 	this.init = function(store) {
 		this.store = store;
-		this.resource = new Resource();
 	};
 
 	/**
@@ -74,8 +80,8 @@ var AstWalker = function() {
 	 * @param source a Source object
 	 */
 	this.setFileAndSource = function(fileItem, source) {
-		this.resource.FileItemId = fileItem.FileItemId;
-		this.resource.SourceId = source.SourceId;
+		this.fileItemId = fileItem.FileItemId;
+		this.sourceId = source.SourceId;
 	};
 
 	/**
@@ -104,14 +110,17 @@ var AstWalker = function() {
 
 		// don't store anynymous functions for now
 		if (node.id !== null && node.id.type === 'Identifier') {
-			this.resource.Key  = node.id.name;
-			this.resource.Identifier = node.id.name;
-			this.resource.Signature = '';
-			this.resource.Comment = '';
-			this.resource.LineNumber =  node.loc.start.line;
-			this.resource.ColumnPosition = node.loc.start.column;
+			var resource = new Resource();
+			resource.Key  = node.id.name;
+			resource.Identifier = node.id.name;
+			resource.Signature = '';
+			resource.Comment = '';
+			resource.LineNumber =  node.loc.start.line;
+			resource.ColumnPosition = node.loc.start.column;
+			resource.FileItemId = this.fileItemId;
+			resource.SourceId = this.sourceId;
 
-			this.store.insert(this.resource);
+			this.store.insert(resource);
 		}
 		this.walkNode(node.body);
 	};
@@ -152,14 +161,17 @@ var AstWalker = function() {
 				if (this.ObjectName) {
 					key = this.ObjectName + '.' + prop.key.name;
 				}
-				this.resource.Key =  key;
-				this.resource.Identifier = prop.key.name;
-				this.resource.Signature = '';
-				this.resource.Comment = '';
-				this.resource.LineNumber = prop.key.loc.start.line;
-				this.resource.ColumnPosition = prop.key.loc.start.column;
+				var resource = new Resource();
+				resource.Key =  key;
+				resource.Identifier = prop.key.name;
+				resource.Signature = '';
+				resource.Comment = '';
+				resource.LineNumber = prop.key.loc.start.line;
+				resource.ColumnPosition = prop.key.loc.start.column;
+				resource.FileItemId = this.fileItemId;
+				resource.SourceId = this.sourceId;
 
-				this.store.insert(this.resource);
+				this.store.insert(resource);
 			}
 		}
 	};
@@ -266,17 +278,39 @@ var AstWalker = function() {
 			!node.left.computed &&
 			node.left.object.type === 'Identifier' &&
 			node.left.property.type === 'Identifier';
+		var isThisFunctionAssignment =
+			node.right.type === 'FunctionExpression' &&
+			node.left.type == 'MemberExpression' &&
+			!node.left.computed &&
+			node.left.object.type === 'ThisExpression' &&
+			node.left.property.type === 'Identifier';
+		var functionName = '';
+		var resource = new Resource();
+		resource.FileItemId = this.fileItemId;
+		resource.SourceId = this.sourceId;
 		if (isFunctionAssignment) {
 			var objectName = node.left.object.name;
-			var functionName = node.left.property.name;
-			this.resource.Key =  objectName + '.' + functionName;
-			this.resource.Identifier = functionName;
-			this.resource.Signature = '';
-			this.resource.Comment = '';
-			this.resource.LineNumber = node.left.property.loc.start.line;
-			this.resource.ColumnPosition = node.left.property.loc.start.column;
+			functionName = node.left.property.name;
+			resource.Key =  objectName + '.' + functionName;
+			resource.Identifier = functionName;
+			resource.Signature = '';
+			resource.Comment = '';
+			resource.LineNumber = node.left.property.loc.start.line;
+			resource.ColumnPosition = node.left.property.loc.start.column;
 
-			this.store.insert(this.resource);
+			this.store.insert(resource);
+		} else if (isThisFunctionAssignment) {
+
+			// we don't know which object 'this' could refer to, ignore for now
+			functionName = node.left.property.name;
+			resource.Key =  functionName;
+			resource.Identifier = functionName;
+			resource.Signature = '';
+			resource.Comment = '';
+			resource.LineNumber = node.left.property.loc.start.line;
+			resource.ColumnPosition = node.left.property.loc.start.column;
+
+			this.store.insert(resource);
 		} else {
 			this.walkNode(node.right);
 		}

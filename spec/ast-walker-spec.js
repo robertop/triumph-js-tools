@@ -823,5 +823,88 @@ describe('ast walker tests', function() {
 		expect(resource).toEqual(actualResource);
 
 	});
+
+	it ('should iterate function assigned to this', function() {
+		node.body = [{
+			'type': 'FunctionDeclaration',
+			'id': {
+				'type': 'Identifier',
+				'name': 'Test'
+			},
+			'loc': {
+				'start': {
+					'line': 1,
+					'column': 2
+				}
+			},
+			'params': [],
+			'defaults': [],
+			'body': {
+				'type': 'BlockStatement',
+				'body': [
+					{
+						'type': 'ExpressionStatement',
+						'expression': {
+							'type': 'AssignmentExpression',
+							'operator': '=',
+							'left': {
+								'type': 'MemberExpression',
+								'computed': false,
+								'object': {
+									'type': 'ThisExpression'
+								},
+								'property': {
+									'type': 'Identifier',
+									'name': 'extractName',
+									'loc': {
+										'start': {
+											'line': 2,
+											'column': 4
+										}
+									}
+								}
+							},
+							'right': {
+								'type': 'FunctionExpression',
+								'id': null,
+								'params': [],
+								'defaults': [],
+								'body': {
+									'type': 'BlockStatement',
+									'body': []
+								},
+								'generator': false,
+								'expression': false
+							}
+						}
+					}
+				]
+			},
+			'generator': false,
+			'expression': false
+		}];
+
+		walker.walkNode(node);
+
+		// expect that we store 2 functions; the "constructor" function
+		// and the function attached to the 'this' object
+		expect(store.insert).toHaveBeenCalled();
+		expect(store.insert.calls.count()).toEqual(2);
+
+		// the constructor function
+		resource.Key = 'Test';
+		resource.Identifier = 'Test';
+		resource.LineNumber = 1;
+		resource.ColumnPosition = 2;
+		var actualResource = store.insert.calls.argsFor(0)[0];
+		expect(resource).toEqual(actualResource);
+
+		resource.Key = 'extractName';
+		resource.Identifier = 'extractName';
+		resource.LineNumber = 2;
+		resource.ColumnPosition = 4;
+		actualResource = store.insert.calls.argsFor(1)[0];
+		expect(resource).toEqual(actualResource);
+	});
 });
 
