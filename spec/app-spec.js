@@ -64,9 +64,11 @@ describe('app tests', function() {
 	var sourceFile;
 
 	// the spies to make assertions against
+	// these spies stub out actual DB reads /writes
 	var sourceSpy;
 	var fileItemSpy;
 	var resourceSpy;
+	var resourceDeleteSpy;
 
 	beforeEach(function() {
 		sourceStore = new SourceStore();
@@ -78,9 +80,6 @@ describe('app tests', function() {
 		resource = new Resource();
 
 		astWalker = new AstWalker();
-		astWalker.init(resourceStore);
-
-		app = new App(sourceStore, fileItemStore, resourceStore, astWalker);
 
 		rootDir = os.tmpdir();
 		if (rootDir.substr(rootDir.length - 1, 1) != '/') {
@@ -118,12 +117,24 @@ describe('app tests', function() {
 		);
 
 		resourceSpy = spyOn(resourceStore, 'insert');
+		resourceDeleteSpy = spyOn(resourceStore, 'deleteAllFromFile')
+			.and.returnValue(
+			Q.fcall(function() {
+				return true;
+			})
+		);
+
+		astWalker.init(resourceStore);
+		app = new App(sourceStore, fileItemStore, resourceStore, astWalker);
 	});
 
 	it ('should store artifacts in directory', function(done) {
 		app.begin(rootDir).then(function() {
 			return app.iterateDir(rootDir).then(function() {
 				expect(resourceSpy).toHaveBeenCalled();
+				expect(resourceSpy.calls.count()).toEqual(1);
+				expect(resourceSpy.calls.argsFor(0)[0].Identifier).toEqual('testMe');
+				expect(resourceDeleteSpy).toHaveBeenCalledWith(fileItem.FileItemId);
 				done();
 			});
 		}).catch(function(err) {
@@ -135,6 +146,9 @@ describe('app tests', function() {
 		app.begin(rootDir).then(function() {
 			return app.iterateFile(sourceFile).then(function() {
 				expect(resourceSpy).toHaveBeenCalled();
+				expect(resourceSpy.calls.count()).toEqual(1);
+				expect(resourceSpy.calls.argsFor(0)[0].Identifier).toEqual('testMe');
+				expect(resourceDeleteSpy).toHaveBeenCalledWith(fileItem.FileItemId);
 				done();
 			});
 		}).catch(function(err) {

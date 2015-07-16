@@ -123,4 +123,40 @@ describe('store tests', function() {
 			});
 		});
 	});
+
+	it ('should delete resources from a file', function(done) {
+		// insert a resource; we will test that the
+		// deleteAllFromFile function deletes the resource
+		db.serialize(function() {
+			db.run('INSERT INTO resources ' +
+				'(file_item_id, source_id, key, identifier, signature, ' +
+				'comment, line_number, column_position) ' +
+				'VALUES' +
+				'(?, ?, ?, ?, ?, ?, ?, ?)',
+				[resource.FileItemId, resource.SourceId, resource.Key,
+				resource.Identifier, resource.Signature,
+				resource.Comment,
+				resource.LineNumber, resource.ColumnPosition],
+				function() {
+					// now try the deletion
+					store.deleteAllFromFile(resource.FileItemId)
+						.then(function() {
+
+							// now make sure that the db does not have
+							// the row
+							db.get('SELECT COUNT(*) as cnt FROM resources',
+								[],
+								function(err, row) {
+									expect(err).toBeNull();
+									expect(row).toBeDefined();
+									expect(row.cnt).toEqual(1);
+								}
+							);
+							done();
+						});
+				}
+			);
+		});
+
+	});
 });

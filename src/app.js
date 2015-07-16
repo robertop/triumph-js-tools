@@ -86,7 +86,11 @@ function App(sourceStore, fileItemStore, resourceStore, astWalker) {
 		fileItem.IsParsed = 1;
 		return fileItemStore.fetchOrInsert(fileItem)
 			.then(function(newFileItem) {
-				astWalker.setFileAndSource(newFileItem, source);
+				fileItem.FileItemId = newFileItem.FileItemId;
+				return resourceStore
+					.deleteAllFromFile(newFileItem.FileItemId);
+			}).then(function() {
+				astWalker.setFileAndSource(fileItem, source);
 				try {
 					var contents = fs.readFileSync(fullPath);
 					var ast = esprima.parse(contents, {loc: true});

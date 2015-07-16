@@ -24,6 +24,7 @@
  */
 
 var sqlite3 = require('sqlite3').verbose();
+var Q = require('q');
 
 /**
  * The Store object takes care of persisting Resource objects into
@@ -62,6 +63,22 @@ function ResourceStore() {
 			resource.Comment,
 			resource.LineNumber, resource.ColumnPosition
 		);
+	};
+
+	/**
+	 * Delete all of the resources that belong to a file.
+	 *
+	 * @param fileItemId int the file item ID of resources to be
+	 *        deleted.
+	 * @return promise that is resolved when the delete has completed.
+	 */
+	this.deleteAllFromFile = function(fileItemId) {
+		var deferred = Q.defer();
+		this.db.run('DELETE FROM resource WHERE file_item_id = ?',
+			[fileItemId], function() {
+			deferred.resolve(true);
+		});
+		return deferred.promise;
 	};
 }
 

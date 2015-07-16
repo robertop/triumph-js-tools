@@ -46,18 +46,21 @@ function DirectoryIterator(callback) {
 	 *         have been recursed through
 	 */
 	this.iterate = function(dir) {
+
+		// TODO: not sure if its a good idea to create 1 promise per
+		// file; this might not work on big projects... will neeed to
+		// test performance
 		var files = fs.readdirSync(dir);
-		this.readFiles(dir, files);
-		return Q.fcall(function() {
-			return true;
-		});
+		return this.readFiles(dir, files);
 	};
 
 	this.readFiles = function(dir, files) {
+		var promises = [];
 		for (var i = 0; i < files.length; i++) {
 			var fullPath = dir + files[i];
 			if (files[i].substr(files[i].length - 3, 3) == '.js') {
-				this.fileCallback(fullPath);
+				var result = this.fileCallback(fullPath);
+				promises.push(Q.when(result));
 			}
 			var stat = fs.statSync(fullPath);
 			if (stat.isDirectory()) {
@@ -65,9 +68,11 @@ function DirectoryIterator(callback) {
 					fullPath += '/';
 				}
 				var subFiles = fs.readdirSync(fullPath);
-				this.readFiles(fullPath, subFiles);
+				var subResult = this.readFiles(fullPath, subFiles);
+				promises.push(subResult);
 			}
 		}
+		return Q.all(promises);
 	};
 }
 
