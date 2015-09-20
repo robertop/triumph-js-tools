@@ -31,7 +31,7 @@ CREATE TABLE resources(
 	id INTEGER NOT NULL PRIMARY KEY,
 	file_item_id INTEGER NOT NULL,
 	source_id INTEGER NOT NULL,
-	key TEXT NOT NULL,
+	key TEXT NOT NULL COLLATE NOCASE,
 	identifier TEXT NOT NULL,
 	signature TEXT NOT NULL,
 	comment TEXT NOT NULL,
